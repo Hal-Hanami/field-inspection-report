@@ -1,0 +1,130 @@
+[
+  {
+    "id": "RPT-0001",
+    "equipmentId": "TR-0142",
+    "equipmentType": "transformer",
+    "inspectedAt": "2026-09-22T09:20",
+    "inspectorName": "田中 一郎",
+    "checks": {
+      "appearance": "ok",
+      "abnormalSound": "caution",
+      "temperature": "ok",
+      "corrosion": "ok",
+      "surroundings": "ok"
+    },
+    "remarks": "低周波のうなりあり。次回点検で再確認する。",
+    "submittedAt": "2026-09-22T00:41:00.000Z"
+  },
+  {
+    "id": "RPT-0002",
+    "equipmentId": "PL-0087",
+    "equipmentType": "pole",
+    "inspectedAt": "2026-09-22T11:05",
+    "inspectorName": "佐藤 美咲",
+    "checks": {
+      "appearance": "ok",
+      "abnormalSound": "ok",
+      "temperature": "ok",
+      "corrosion": "ok",
+      "surroundings": "ok"
+    },
+    "remarks": "",
+    "submittedAt": "2026-09-22T02:12:00.000Z"
+  },
+  {
+    "id": "RPT-0003",
+    "equipmentId": "SW-0031",
+    "equipmentType": "switchgear",
+    "inspectedAt": "2026-09-22T14:40",
+    "inspectorName": "鈴木 健太",
+    "checks": {
+      "appearance": "abnormal",
+      "abnormalSound": "ok",
+      "temperature": "caution",
+      "corrosion": "caution",
+      "surroundings": "ok"
+    },
+    "remarks": "外箱に変形と塗膜の剥離。開閉操作は可能だが早期の交換を要する。",
+    "submittedAt": "2026-09-22T05:58:00.000Z"
+  },
+  {
+    "id": "RPT-0004",
+    "equipmentId": "IN-0250",
+    "equipmentType": "insulator",
+    "inspectedAt": "2026-09-21T08:15",
+    "inspectorName": "高橋 直子",
+    "checks": {
+      "appearance": "caution",
+      "abnormalSound": "ok",
+      "temperature": "ok",
+      "corrosion": "ok",
+      "surroundings": "caution"
+    },
+    "remarks": "表面に汚損。周囲の樹木が近接しており、伐採の手配を依頼した。",
+    "submittedAt": "2026-09-21T00:02:00.000Z"
+  },
+  {
+    "id": "RPT-0005",
+    "equipmentId": "MT-1188",
+    "equipmentType": "meter",
+    "inspectedAt": "2026-09-21T13:30",
+    "inspectorName": "山本 亮",
+    "checks": {
+      "appearance": "ok",
+      "abnormalSound": "ok",
+      "temperature": "ok",
+      "corrosion": "ok",
+      "surroundings": "ok"
+    },
+    "remarks": "",
+    "submittedAt": "2026-09-21T04:44:00.000Z"
+  },
+  {
+    "id": "RPT-0006",
+    "equipmentId": "TR-0155",
+    "equipmentType": "transformer",
+    "inspectedAt": "2026-09-20T10:10",
+    "inspectorName": "田中 一郎",
+    "checks": {
+      "appearance": "ok",
+      "abnormalSound": "ok",
+      "temperature": "abnormal",
+      "corrosion": "ok",
+      "surroundings": "ok"
+    },
+    "remarks": "外箱の表面温度が周囲より高い。負荷状況の確認を依頼する。",
+    "submittedAt": "2026-09-20T01:25:00.000Z"
+  },
+  {
+    "id": "RPT-0007",
+    "equipmentId": "PL-0091",
+    "equipmentType": "pole",
+    "inspectedAt": "2026-09-19T15:50",
+    "inspectorName": "佐藤 美咲",
+    "checks": {
+      "appearance": "ok",
+      "abnormalSound": "ok",
+      "temperature": "ok",
+      "corrosion": "caution",
+      "surroundings": "ok"
+    },
+    "remarks": "根元の金具にさび。進行は軽微。",
+    "submittedAt": "2026-09-19T07:03:00.000Z"
+  },
+  {
+    "id": "RPT-0008",
+    "equipmentId": "SW-0044",
+    "equipmentType": "switchgear",
+    "inspectedAt": "2026-09-18T09:00",
+    "inspectorName": "鈴木 健太",
+    "checks": {
+      "appearance": "ok",
+      "abnormalSound": "ok",
+      "temperature": "ok",
+      "corrosion": "ok",
+      "surroundings": "ok"
+    },
+    "remarks": "",
+    "submittedAt": "2026-09-18T00:20:00.000Z"
+  }
+]
