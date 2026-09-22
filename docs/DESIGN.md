@@ -41,7 +41,7 @@ A report records one inspection of one piece of equipment.
 | `id` | `string` | assigned by the repository on save, format per §1.2 |
 | `equipmentId` | `string` | identifier written on the equipment, format per §1.2 |
 | `equipmentType` | `EquipmentType` | `transformer` \| `pole` \| `switchgear` \| `insulator` \| `meter` |
-| `inspectedAt` | `string` | local date-time, `YYYY-MM-DDTHH:mm` |
+| `inspectedAt` | `string` | wall-clock date-time, `YYYY-MM-DDTHH:mm`, no zone |
 | `inspectorName` | `string` | who inspected |
 | `checks` | `Record<CheckItem, CheckResult>` | every item, no gaps (§2.1) |
 | `remarks` | `string` | free text, may be empty unless §2.2 applies |
@@ -56,6 +56,12 @@ UI does not already show.
 
 `checks` is a record keyed by check item rather than an array of `{item, result}` pairs,
 so that "every item has a result" is a property of the type rather than a rule to police.
+
+`inspectedAt` carries no timezone: it is what the control on the device produced, read in
+the zone of whoever is looking. Everyone using this application is in one zone, and a
+stored offset would be a promise about crossing zones that nothing here keeps. It follows
+that the clock it is compared against (§2.4) must be read in the same zone — a comparison
+written with a fixed offset holds in one timezone and fails in another.
 
 ### §1.2 Identifiers
 

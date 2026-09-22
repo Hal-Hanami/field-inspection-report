@@ -3,7 +3,10 @@ import { CHECK_ITEMS } from '../types';
 import { createDraftSchema, normalizeEquipmentId, parseReports, validateDraft } from '../schema';
 import { makeChecks, makeDraft, makeReport } from '../../test/fixtures';
 
-const NOW = new Date('2026-09-23T12:00:00+09:00');
+// `inspectedAt` is wall-clock time without a zone (DESIGN §1.1), so the clock a test
+// passes is built the same way. A clock written with an offset would make these tests
+// pass in one timezone and fail in another — as CI found.
+const NOW = new Date('2026-09-23T12:00');
 
 function messagesFor(input: unknown, path: string): string[] {
   const result = validateDraft(input, NOW);
@@ -81,7 +84,7 @@ describe('draft validation (DESIGN §2)', () => {
   it('§2.4: the clock is the one the caller passes, not the machine the test runs on', () => {
     const draft = makeDraft({ inspectedAt: '2026-09-23T11:00' });
     expect(validateDraft(draft, NOW).valid).toBe(true);
-    expect(validateDraft(draft, new Date('2026-09-23T10:00:00+09:00')).valid).toBe(false);
+    expect(validateDraft(draft, new Date('2026-09-23T10:00')).valid).toBe(false);
   });
 
   it('§2.5: the inspector name is required and stops at 32 characters', () => {

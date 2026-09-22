@@ -3,7 +3,7 @@ import { DraftRejectedError } from '../InspectionRepository';
 import { createMemoryRepository, loadSeedReports } from '../memoryRepository';
 import { makeChecks, makeDraft, makeReport } from '../../test/fixtures';
 
-const NOW = new Date('2026-09-23T12:00:00+09:00');
+const NOW = new Date('2026-09-23T12:00');
 const clock = () => NOW;
 
 describe('memory repository (DESIGN §3.2, §3.4)', () => {
