@@ -15,7 +15,8 @@ const repository = createMemoryRepository();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RepositoryProvider repository={repository}>
-      <BrowserRouter>
+      {/* The routes in DESIGN §4.1 are relative to wherever the site is mounted. */}
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <App />
       </BrowserRouter>
     </RepositoryProvider>

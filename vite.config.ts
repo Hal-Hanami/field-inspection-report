@@ -1,8 +1,26 @@
+import { copyFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vitest/config';
+import { defineConfig, type Plugin } from 'vitest/config';
+
+/**
+ * A static host has no router: it looks for a file at the path in the URL. Serving the
+ * application shell as the not-found page is what lets /reports/new survive a reload or
+ * a link opened on a phone.
+ */
+function spaFallback(): Plugin {
+  return {
+    name: 'spa-fallback',
+    apply: 'build',
+    closeBundle() {
+      copyFileSync('dist/index.html', 'dist/404.html');
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  // The site is served from a subdirectory, so assets are referenced relative to it.
+  base: '/field-inspection-report/',
+  plugins: [react(), spaFallback()],
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
