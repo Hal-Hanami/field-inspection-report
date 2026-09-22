@@ -1,0 +1,42 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* The glyph is redundant with the label, so it stays out of the accessibility tree. */
+.badge::before {
+  font-size: 0.75rem;
+}
+
+.badge[data-severity='ok'] {
+  color: var(--color-ok-fg);
+  background-color: var(--color-ok-bg);
+}
+
+.badge[data-severity='ok']::before {
+  content: '\25CF';
+}
+
+.badge[data-severity='caution'] {
+  color: var(--color-caution-fg);
+  background-color: var(--color-caution-bg);
+}
+
+.badge[data-severity='caution']::before {
+  content: '\25B2';
+}
+
+.badge[data-severity='abnormal'] {
+  color: var(--color-abnormal-fg);
+  background-color: var(--color-abnormal-bg);
+}
+
+.badge[data-severity='abnormal']::before {
+  content: '\25A0';
+}

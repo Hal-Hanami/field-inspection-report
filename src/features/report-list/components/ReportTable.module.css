@@ -1,0 +1,107 @@
+/*
+ * Mobile-first (DESIGN §4.4). The base rules turn each row into a card; the desktop
+ * table is added at 768px and above (DESIGN §4.3).
+ */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.caption {
+  text-align: left;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  padding-bottom: var(--space-sm);
+}
+
+/* Column headers are the labels on each cell below 768px, carried by `data-label`. */
+.head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.row {
+  display: block;
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.row > * {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--space-xs) 0;
+  text-align: right;
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.row > *:last-child {
+  border-bottom: none;
+}
+
+.row > *::before {
+  content: attr(data-label);
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.rowHeader {
+  font-weight: 700;
+}
+
+.remarks {
+  word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .head {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+  }
+
+  .head th {
+    text-align: left;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+    border-bottom: 2px solid var(--color-border);
+    padding: var(--space-sm);
+  }
+
+  .row {
+    display: table-row;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-surface);
+    border: none;
+  }
+
+  .row > * {
+    display: table-cell;
+    text-align: left;
+    vertical-align: top;
+    padding: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .row > *::before {
+    content: none;
+  }
+
+  .remarks {
+    max-width: 22rem;
+  }
+}
