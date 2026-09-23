@@ -19,12 +19,14 @@ both; nothing here is a separate "mobile app".
 
 ## Scope and non-goals
 
-In scope: the report form, the report list, validation rules, a mock data source.
+In scope: the report form, the report list, a report's detail, the validation rules, an
+HTTP API with a PostgreSQL store (§7), and an in-memory data source for the static demo.
 
-Out of scope, deliberately: server and database, authentication and roles, an approval
-workflow, photo upload, offline capture, aggregation dashboards, and printing. Data lives
-in memory: **anything filed is lost on reload**. The repository port (§3.2) is the seam
-where a real backend would attach; nothing else in the code assumes the data is local.
+Out of scope, deliberately: authentication and roles, an approval workflow, photo upload,
+offline capture, aggregation dashboards, printing, and hosting the API in public. The
+public demo is a static site on the in-memory adapter: **anything filed there is lost on
+reload**. The repository port (§3.2) is the one seam between the screens and where data
+lives, so the same screens run on either adapter.
 
 The domain is fictional. Equipment types, check items and seed reports were written for
 this application from public knowledge of distribution equipment; they describe no real
@@ -65,24 +67,34 @@ written with a fixed offset holds in one timezone and fails in another.
 
 ### §1.2 Identifiers
 
-`equipmentId` matches `^[A-Z]{2}-\d{4}$` (`TR-0142`). Input is trimmed and upper-cased
+`equipmentId` matches `^[A-Z]{2}-[0-9]{4}$` (`TR-0142`). The digits are ASCII: a regex `\d`
+matches full-width digits in some languages and not in others, and the two sides of §7.3
+must agree. Input is trimmed and upper-cased
 before validation, because a phone keyboard offers lower case first and rejecting `tr-0142`
 would be rejecting a correct answer typed the convenient way.
 
-`id` matches `^RPT-\d{4}$` and is assigned by the repository, never by the form. The client
-does not invent identifiers it cannot keep unique.
+`id` matches `^RPT-[0-9]{4,}$` and is assigned by the repository, never by the form. The client
+does not invent identifiers it cannot keep unique. Four digits is the minimum width, not a
+limit: report 10000 is still a valid report.
 
 ### §1.3 Severity
 
 A report's severity is the worst result among its checks, ordered `ok < caution < abnormal`.
 Severity is derived on read, never stored: a stored copy can disagree with the checks it
-summarizes.
+summarizes. The server includes the derived value in its responses for clients that do not
+carry the rule; the web derives its own, and §7.3 holds both derivations to the same answers.
 
 ## §2 Validity rules
 
-A draft is valid when all of the following hold. They are expressed once, as a schema in
-`src/domain`, and used by both the form and the repository — a rule enforced only in the UI
-is a rule that a second caller can skip.
+A draft is valid when all of the following hold. The server is the authority (§7.2); the
+web keeps a copy in `src/domain` so that a person sees every mistake without a round trip,
+and so the static demo can run with no server. Two copies of a rule drift unless something
+holds them together, and that is §7.3. Within the web, the one copy is used by both the form
+and the repository — a rule enforced only in the UI is a rule that a second caller can skip.
+
+"Characters" means UTF-16 code units, which is what a browser's `maxlength` counts; a
+limit the text box allows and the server rejects is a limit nobody can meet. "Trimming"
+removes the white space of ECMAScript `String.prototype.trim` and nothing else.
 
 - **§2.1** Every check item in §1.1 has a result. A missing item is a validation error, not
   an implied `ok`; "not looked at" and "looked at, fine" are different facts.
@@ -91,7 +103,10 @@ is a rule that a second caller can skip.
   the office.
 - **§2.3** `remarks` holds at most 200 characters. The field is a hand-off note, not an
   incident report.
-- **§2.4** `inspectedAt` is required, parses as a date-time, and is not in the future. The
+- **§2.4** `inspectedAt` is required, has exactly the form `YYYY-MM-DDTHH:mm`, names a real
+  calendar moment (no 30 February), and is not in the future. A lenient date parser accepts
+  `2026/09/22` in one language and rejects it in another, and rolls 30 February over to
+  March; the format is the one the device's date-time control produces. The
   current time is passed into the domain by the caller; the domain never reads the clock,
   so tests state the time rather than mock it.
 - **§2.5** `inspectorName` is required and holds at most 32 characters after trimming.
@@ -107,10 +122,12 @@ from; `features` know the domain and the port, never a concrete adapter.
 ```
 src/
   domain/      types, schema, rules, severity — pure TypeScript
-  data/        InspectionRepository (port) + in-memory adapter (§3.4)
+  data/        InspectionRepository (port) + in-memory and HTTP adapters (§3.4)
+    api/         types generated from the server's OpenAPI document (§7.4)
   features/
     report-form/   form screen: components + useReportForm
     report-list/   list screen: components + useReports
+    report-detail/ one report: components + useReport
   app/         routing, repository provider, layout
   locales/     Japanese UI strings and seed data (§6)
 ```
@@ -119,25 +136,30 @@ src/
   `react-router-dom`, `react-hook-form`, nor anything from `src/features`, `src/app` or
   `src/data`. This is what makes the rules testable without rendering, and re-usable from a
   future server.
-- **§3.2** `InspectionRepository` is the only port to the outside:
-  `list(): Promise<InspectionReport[]>` and `save(draft): Promise<InspectionReport>`.
-  Both are asynchronous although today's adapter is local, so that replacing it with HTTP
-  changes one file and no call site. `save` re-validates its input (§2) and rejects an
-  invalid draft.
+- **§3.2** `InspectionRepository` is the only port to the outside: `list()`, `get(id)` and
+  `save(draft, { idempotencyKey })`, all asynchronous, plus `persistent`, which says whether
+  a saved report outlives a reload. `get` resolves to `null` for an unknown id rather than
+  throwing, because "no such report" is an answer, not a failure. `save` re-validates its
+  input (§2) and rejects an invalid draft with the failing fields, so a rule that only the
+  server knows still reaches the field it concerns.
 - **§3.3** Screens get the repository from React context, provided once in `src/app`.
   Components under `src/features/*/components` do not import from `src/data`; a component
   that reaches for a data source cannot be rendered in a test or a future story without it.
-- **§3.4** The shipped adapter keeps reports in memory, seeded from `src/locales/seed.ja.json`,
-  and assigns `id` and `submittedAt` on save. It is not a cache and has no persistence: the
-  honesty note in the UI says so where a user can read it.
+- **§3.4** Two adapters implement the port. The in-memory one is seeded from
+  `src/locales/seed.ja.json`, assigns `id` and `submittedAt` on save, and backs the static
+  demo and the component tests. The HTTP one talks to the server (§7). `src/main.tsx` picks
+  one: HTTP when `VITE_API_BASE_URL` is set, memory otherwise. The honesty note in the UI
+  follows `persistent`, so it never claims a backend the build does not have, or denies one
+  it does.
 - **§3.5** State that belongs to a screen lives in that screen's hook (`useReports`,
   `useReportForm`); components receive values and callbacks as props and render. There is no
   global state container, because the only shared object is the repository (§3.3).
 
 ## §4 Screens, routing, responsiveness
 
-- **§4.1** Routes: `/reports` lists reports, `/reports/new` files one, any other path
-  redirects to `/reports`. Screens are addressable, so a phone can open the form directly.
+- **§4.1** Routes: `/reports` lists reports, `/reports/new` files one, `/reports/:id` shows
+  one, any other path redirects to `/reports`. Screens are addressable, so a phone can open
+  the form directly and a report can be linked to.
 - **§4.2** A successful save returns to `/reports` and confirms which report was filed. The
   list is ordered by `inspectedAt`, newest first, so the report just filed is visible at the
   top without searching for it.
@@ -150,6 +172,12 @@ src/
 - **§4.5** Severity is shown with a text label and a shape, never colour alone. Colour fails
   for colour-blind readers and fails again on a phone screen in sunlight, which is exactly
   where this screen is used.
+
+- **§4.6** The list links each report id to its detail, and the detail shows the result of
+  every check item, each with its label and shape (§4.5). The list shows a report's
+  severity, which says *that* something is abnormal; only the detail says *which* item, and
+  the office should not have to infer it from the remarks. An unknown id says so on the
+  page rather than redirecting, so a mistyped link is noticed.
 
 ## §5 Accessibility
 
@@ -177,6 +205,63 @@ rather than CSS classes — so the tests fail when the accessible structure brea
   validated against the domain schema (§2) when loaded, so demo data cannot drift from the
   rules the form enforces.
 
+## §7 Server
+
+The server lives in `api/`: Python, FastAPI, SQLAlchemy and PostgreSQL, managed with `uv`.
+It answers under `/api` and serves no pages; the web is a separate static build that calls
+it. Dependencies point inward here as they do in the web (§3):
+
+```
+api/app/
+  domain/      rules, severity, normalization — no FastAPI, no SQLAlchemy
+  repository/  ReportRepository (Protocol) + the PostgreSQL adapter
+  http/        FastAPI routes: HTTP to domain and back, nothing else
+  settings.py  configuration from the environment
+api/migrations/  Alembic revisions
+contracts/       validation cases both test suites run (§7.3)
+```
+
+- **§7.1** Modules under `api/app/domain` import neither `fastapi` nor `sqlalchemy`, nor
+  anything from `app.repository` or `app.http`. The rules are then testable without a
+  database or a request, which is what lets §7.3 run them case by case.
+- **§7.2** The server validates every draft against §2 itself; nothing a client checked is
+  trusted. A rejected draft is answered `422` with every failing field at once (§2.7), each
+  as a field path and a message key from `ja.json`. The server holds keys, never sentences,
+  so §6.1 holds for it too.
+- **§7.3** `contracts/validation-cases.json` lists drafts, a wall-clock "now", and the
+  outcome each must produce: the failing fields with their keys, or the normalized draft,
+  plus the severity of a set of checks. The web suite and the server suite both run every
+  case. A rule changed on one side only fails the other side's suite, before it can reach
+  a person as a form that passes and a server that refuses.
+- **§7.4** `api/openapi.json` is generated from the server and committed, and
+  `src/data/api/schema.ts` is generated from it. CI regenerates both and fails on a
+  difference, so the web cannot compile against a shape the server no longer has.
+- **§7.5** Report ids come from a database sequence, formatted `RPT-` and at least four
+  digits (§1.2). Two reports filed at the same moment cannot receive the same id, which a
+  "highest id plus one" read cannot promise.
+- **§7.6** Creating a report requires an `Idempotency-Key` header, which the form generates
+  once per draft. A repeated key with the same draft returns the report already created,
+  so a retry after a lost response on a weak mobile signal does not file the inspection
+  twice; the same key with a different draft is `409`. A rejected draft (§7.2) records no
+  key, so correcting it and submitting again is not a conflict.
+- **§7.7** Check results are stored one row per item, keyed by report and item, and a report
+  is written together with all of its checks in one transaction. Enumerated values and
+  lengths are `CHECK` constraints as well as domain rules. Severity is not a column (§1.3).
+  Rows per item, rather than a document per report, let "which item fails most" be a query.
+- **§7.8** `inspected_at` is a timestamp without zone (§1.1). The server compares it with its
+  clock read in `APP_TIME_ZONE`, the zone its users are in; the clock is passed into the
+  domain, as in the web (§2.4). `submitted_at` is an instant, with zone, set by the server.
+- **§7.9** The list is ordered by `inspectedAt`, newest first, then by id, and is paged with
+  a cursor: `limit` (default 50, at most 200) and the `nextCursor` the previous page
+  returned. A cursor, unlike an offset, does not skip or repeat reports when one is filed
+  while someone is paging.
+- **§7.10** Errors are `application/problem+json` (RFC 9457): `404` for an unknown report,
+  `409` for an idempotency conflict, `422` for an invalid draft with its field errors, and
+  `400` for a request the API cannot read at all.
+- **§7.11** The schema changes only through migrations. The server's tests build their
+  database by running every migration from empty, so a test cannot pass against a schema
+  that a deployed database would not have.
+
 ## Quality gates
 
 CI runs these on every push; each corresponds to a way this repository has been able to go
@@ -190,5 +275,9 @@ wrong.
 | `npm run build` | a repository that is green but does not ship |
 | no-CJK scan (§6.1), exempting `src/locales/` | private context leaking into a public repo |
 | design-reference scan | a section here that no test enforces — a promise nobody keeps |
+| `ruff`, `pyright` strict, `pytest` on PostgreSQL | the same, for the server |
+| shared validation cases (§7.3) | a rule that the form and the server disagree on |
+| regenerated OpenAPI document and web types (§7.4) | a web built against a stale API |
 
-The last two run as tests as well as CI steps, so they fail locally before a push.
+The no-CJK and design-reference scans, and the shared cases, run as tests as well as CI
+steps, so they fail locally before a push.
