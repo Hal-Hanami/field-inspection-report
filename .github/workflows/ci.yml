@@ -72,9 +72,11 @@ jobs:
 
   deploy:
     # Nothing reaches the public site that has not passed the gates above. The job is
-    # skipped while the repository is private, where Pages is not served anyway.
+    # skipped while the repository is private, where Pages is not served anyway, and for
+    # pull requests. A manual run deploys too: a re-run of an old push still carries the
+    # visibility the repository had at the time of that push.
     needs: [verify, api]
-    if: github.event_name == 'push' && github.event.repository.visibility == 'public'
+    if: github.event_name != 'pull_request' && github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     permissions:
       pages: write
