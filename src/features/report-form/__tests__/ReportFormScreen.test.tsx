@@ -141,7 +141,6 @@ describe('report form (DESIGN §5)', () => {
 
   it('§3.2: a repository failure is reported rather than swallowed', async () => {
     const failing = {
-      persistent: true,
       list: async () => [],
       get: async () => null,
       save: async () => {
@@ -168,7 +167,6 @@ describe('report form (DESIGN §5)', () => {
 
   it('§7.2: a draft the server refuses is marked on the field the server names', async () => {
     const refusing: InspectionRepository = {
-      persistent: true,
       list: async () => [],
       get: async () => null,
       save: async () => {

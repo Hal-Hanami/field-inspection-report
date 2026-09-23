@@ -50,15 +50,5 @@ describe('report list (DESIGN §4.2, §4.3, §4.5)', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('§3.4: states in the UI that nothing is stored', async () => {
-    renderApp({ repository: createMemoryRepository({ reports: [] }) });
-    expect(screen.getByText(t('app.notice.body'))).toBeInTheDocument();
-  });
 
-  it('§3.4: with a server behind the screens, the notice says reports are kept', async () => {
-    const server = { ...createMemoryRepository({ reports: [] }), persistent: true };
-    renderApp({ repository: server });
-    expect(screen.getByText(t('app.notice.bodyServer'))).toBeInTheDocument();
-    expect(screen.queryByText(t('app.notice.body'))).not.toBeInTheDocument();
-  });
 });

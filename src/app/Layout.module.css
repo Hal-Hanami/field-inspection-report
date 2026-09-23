@@ -78,25 +78,6 @@
   padding: var(--space-lg) var(--gutter) var(--space-xl);
 }
 
-.footer {
-  width: 100%;
-  padding: var(--space-lg) var(--gutter) 32px;
-  border-top: 1px solid var(--color-border);
-}
-
-.noticeTitle {
-  font-size: var(--font-size-sm);
-  line-height: 1.5;
-}
-
-.noticeBody {
-  max-width: 44em;
-  margin: 0;
-  font-size: var(--font-size-sm);
-  line-height: 1.8;
-  color: var(--color-muted);
-}
-
 @media (min-width: 768px) {
   /* Content is capped at the token width and centred; the gutter grows to fill. */
   .shell {

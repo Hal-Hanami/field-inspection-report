@@ -49,8 +49,6 @@ export function createHttpRepository(
   const url = (path: string) => `${baseUrl.replace(/\/$/, '')}${path}`;
 
   return {
-    persistent: true,
-
     async list() {
       // The screen shows every report, so the adapter follows the cursor to the end
       // (DESIGN §7.9); paging in the UI is outside this application's scope.

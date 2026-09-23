@@ -13,8 +13,6 @@ export type SaveOptions = {
  * screens are the same whether the data is in memory or behind a server (DESIGN §3.4).
  */
 export interface InspectionRepository {
-  /** Whether a saved report outlives a reload; the notice in the UI says which. */
-  readonly persistent: boolean;
   list(): Promise<InspectionReport[]>;
   /** `null` for an unknown id: "no such report" is an answer, not a failure. */
   get(id: string): Promise<InspectionReport | null>;

@@ -115,7 +115,4 @@ describe('HTTP repository (DESIGN §3.2, §7)', () => {
     );
   });
 
-  it('§3.4: a server keeps what is filed, and the adapter says so', () => {
-    expect(createHttpRepository('/api').persistent).toBe(true);
-  });
 });

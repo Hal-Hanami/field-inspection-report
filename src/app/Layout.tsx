@@ -1,18 +1,10 @@
 import { NavLink } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { useRepository } from '../data/repositoryContext';
 import { t } from '../i18n/t';
 import styles from './Layout.module.css';
 
-/**
- * The frame both screens share. The notice is part of the product, not decoration: it
- * states in the UI what the repository cannot do (DESIGN §3.4) so that nobody has to
- * discover it by losing a report.
- */
+/** The frame every screen shares: the skip link, the title and the navigation. */
 export function Layout({ children }: { children: ReactNode }) {
-  // The notice follows the adapter in use, so it never claims or denies a backend the
-  // build does not have (DESIGN §3.4).
-  const repository = useRepository();
   return (
     <div className={styles.shell}>
       <a className={styles.skip} href="#main">
@@ -36,13 +28,6 @@ export function Layout({ children }: { children: ReactNode }) {
       <main id="main" className={styles.main}>
         {children}
       </main>
-
-      <footer className={styles.footer}>
-        <h2 className={styles.noticeTitle}>{t('app.notice.title')}</h2>
-        <p className={styles.noticeBody}>
-          {t(repository.persistent ? 'app.notice.bodyServer' : 'app.notice.body')}
-        </p>
-      </footer>
     </div>
   );
 }
