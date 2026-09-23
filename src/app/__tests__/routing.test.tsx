@@ -30,4 +30,13 @@ describe('routing (DESIGN §4.1)', () => {
       '/reports/new',
     );
   });
+
+  it.each([
+    ['/reports', 'app.nav.list', 'app.nav.new'],
+    ['/reports/new', 'app.nav.new', 'app.nav.list'],
+  ] as const)('§4.1: on %s only the current screen is marked current', (route, current, other) => {
+    renderApp({ route });
+    expect(screen.getByRole('link', { name: t(current) })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: t(other) })).not.toHaveAttribute('aria-current');
+  });
 });

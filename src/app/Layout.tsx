@@ -18,7 +18,9 @@ export function Layout({ children }: { children: ReactNode }) {
       <header className={styles.header}>
         <h1 className={styles.title}>{t('app.title')}</h1>
         <nav className={styles.nav} aria-label={t('app.title')}>
-          <NavLink to="/reports" className={styles.navLink}>
+          {/* `end`: without it /reports also matches /reports/new, and both links
+              would claim to be the current page. */}
+          <NavLink to="/reports" end className={styles.navLink}>
             {t('app.nav.list')}
           </NavLink>
           <NavLink to="/reports/new" className={styles.navLink}>
