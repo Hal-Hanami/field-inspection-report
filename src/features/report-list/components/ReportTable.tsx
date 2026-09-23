@@ -1,7 +1,8 @@
+import { Link } from 'react-router-dom';
 import { severityOf, type InspectionReport } from '../../../domain';
 import { formatDateTime } from '../../../i18n/format';
 import { equipmentTypeKey, t } from '../../../i18n/t';
-import { SeverityBadge } from './SeverityBadge';
+import { SeverityBadge } from '../../../components/SeverityBadge';
 import styles from './ReportTable.module.css';
 
 /**
@@ -32,7 +33,9 @@ export function ReportTable({ reports }: { reports: InspectionReport[] }) {
             // stays the accessible signal (DESIGN §4.5).
             <tr key={report.id} className={styles.row} data-severity={severity}>
               <th scope="row" className={styles.rowHeader} data-label={t('list.column.id')}>
-                <span className={styles.code}>{report.id}</span>
+                <Link to={`/reports/${report.id}`} className={styles.code}>
+                  {report.id}
+                </Link>
               </th>
               <td data-label={t('list.column.equipment')}>
                 <span className={styles.code}>{report.equipmentId}</span>

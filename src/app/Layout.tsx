@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { useRepository } from '../data/repositoryContext';
 import { t } from '../i18n/t';
 import styles from './Layout.module.css';
 
@@ -9,6 +10,9 @@ import styles from './Layout.module.css';
  * discover it by losing a report.
  */
 export function Layout({ children }: { children: ReactNode }) {
+  // The notice follows the adapter in use, so it never claims or denies a backend the
+  // build does not have (DESIGN §3.4).
+  const repository = useRepository();
   return (
     <div className={styles.shell}>
       <a className={styles.skip} href="#main">
@@ -35,7 +39,9 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <footer className={styles.footer}>
         <h2 className={styles.noticeTitle}>{t('app.notice.title')}</h2>
-        <p className={styles.noticeBody}>{t('app.notice.body')}</p>
+        <p className={styles.noticeBody}>
+          {t(repository.persistent ? 'app.notice.bodyServer' : 'app.notice.body')}
+        </p>
       </footer>
     </div>
   );

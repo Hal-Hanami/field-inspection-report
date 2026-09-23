@@ -1,5 +1,5 @@
-import type { CheckResult } from '../../../domain';
-import { checkResultKey, t } from '../../../i18n/t';
+import type { CheckResult } from '../domain';
+import { checkResultKey, t } from '../i18n/t';
 import styles from './SeverityBadge.module.css';
 
 /**

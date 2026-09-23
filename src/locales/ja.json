@@ -5,6 +5,7 @@
   "app.nav.new": "点検報告を作成",
   "app.notice.title": "このデモについて",
   "app.notice.body": "公開デモのため、バックエンドはありません。入力した報告はブラウザのメモリにのみ保持され、再読み込みすると初期データに戻ります。認証・承認フロー・写真添付・集計画面は実装していません。",
+  "app.notice.bodyServer": "入力した報告はサーバーのデータベースに保存されます。認証・承認フロー・写真添付・集計画面は実装していません。",
 
   "list.title": "報告一覧",
   "list.caption": "点検報告の一覧（点検日時の新しい順）",
@@ -20,6 +21,16 @@
   "list.column.severity": "判定",
   "list.column.remarks": "所見",
   "list.remarks.none": "（なし）",
+
+  "detail.title": "報告 {id}",
+  "detail.back": "報告一覧へ戻る",
+  "detail.severity": "総合判定",
+  "detail.submittedAt": "登録日時",
+  "detail.checks": "点検項目の結果",
+  "detail.checks.caption": "点検項目ごとの判定",
+  "detail.checks.item": "点検項目",
+  "detail.checks.result": "判定",
+  "detail.notFound": "報告 {id} は見つかりません。",
 
   "form.title": "点検報告",
   "form.description": "現場で点検結果を記録します。すべての点検項目を選択してください。",

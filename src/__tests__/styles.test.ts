@@ -33,7 +33,7 @@ describe('responsive rules (DESIGN §4.3, §4.4, §5.4)', () => {
   });
 
   it('§4.5: severity styling adds a shape, so colour is never the only signal', () => {
-    const badge = read('src/features/report-list/components/SeverityBadge.module.css');
+    const badge = read('src/components/SeverityBadge.module.css');
     const shapes = badge.match(/content: '\\[0-9A-F]{4}'/g) ?? [];
     expect(shapes.length).toBe(3);
   });

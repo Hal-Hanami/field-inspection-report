@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { ReportDetailScreen } from '../features/report-detail/ReportDetailScreen';
 import { ReportFormScreen } from '../features/report-form/ReportFormScreen';
 import { ReportListScreen } from '../features/report-list/ReportListScreen';
 import { Layout } from './Layout';
@@ -10,6 +11,7 @@ export function App() {
       <Routes>
         <Route path="/reports" element={<ReportListScreen />} />
         <Route path="/reports/new" element={<ReportFormScreen />} />
+        <Route path="/reports/:id" element={<ReportDetailScreen />} />
         <Route path="*" element={<Navigate to="/reports" replace />} />
       </Routes>
     </Layout>

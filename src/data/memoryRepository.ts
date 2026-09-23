@@ -5,7 +5,11 @@ import {
   type InspectionReport,
   type ReportDraft,
 } from '../domain';
-import { DraftRejectedError, type InspectionRepository } from './InspectionRepository';
+import {
+  DraftRejectedError,
+  type InspectionRepository,
+  type SaveOptions,
+} from './InspectionRepository';
 
 /**
  * The shipped adapter (DESIGN §3.4): reports live in memory and are lost on reload.
@@ -36,15 +40,27 @@ export function createMemoryRepository(
 ): InspectionRepository {
   const now = options.now ?? (() => new Date());
   let reports = options.reports ?? loadSeedReports();
+  // Honoured as the server honours it (DESIGN §7.6), so the form behaves the same on
+  // either adapter when a submit is repeated.
+  const savedByKey = new Map<string, InspectionReport>();
 
   return {
+    persistent: false,
+
     async list() {
       return [...reports];
     },
 
-    async save(draft: ReportDraft) {
+    async get(id: string) {
+      return reports.find((report) => report.id === id) ?? null;
+    },
+
+    async save(draft: ReportDraft, { idempotencyKey }: SaveOptions) {
       const result = validateDraft(draft, now());
       if (!result.valid) throw new DraftRejectedError(result.errors);
+
+      const previous = savedByKey.get(idempotencyKey);
+      if (previous) return previous;
 
       const report: InspectionReport = {
         ...result.draft,
@@ -52,6 +68,7 @@ export function createMemoryRepository(
         submittedAt: now().toISOString(),
       };
       reports = [...reports, report];
+      savedByKey.set(idempotencyKey, report);
       return report;
     },
   };

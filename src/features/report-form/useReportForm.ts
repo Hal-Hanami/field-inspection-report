@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useForm, type Resolver, type UseFormReturn } from 'react-hook-form';
+import { useForm, type FieldPath, type Resolver, type UseFormReturn } from 'react-hook-form';
+import { DraftRejectedError } from '../../data/InspectionRepository';
 import { useRepository } from '../../data/repositoryContext';
 import {
   CHECK_ITEMS,
@@ -92,13 +93,26 @@ export function useReportForm(options: {
     shouldFocusError: true,
   });
 
+  // One key per draft (DESIGN §7.6): pressing the button again after a lost response is
+  // a retry of the same filing, not a second report.
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+
   const submit = form.handleSubmit(async (draft) => {
     setSaveError(null);
     try {
-      options.onSaved(await repository.save(draft));
-    } catch {
-      // The repository re-validates (DESIGN §3.2); a rejection here is a bug or an
-      // outage, and either way the person needs to be told rather than left waiting.
+      options.onSaved(await repository.save(draft, { idempotencyKey }));
+    } catch (error) {
+      if (error instanceof DraftRejectedError) {
+        // The server is the authority (DESIGN §7.2): a rule the web's copy did not catch,
+        // or a clock that disagrees, is shown on the field it concerns (DESIGN §5.2).
+        for (const { path, message } of error.errors) {
+          form.setError(path as FieldPath<ReportFormValues>, { type: 'server', message });
+        }
+        const first = error.errors[0];
+        if (first) form.setFocus(first.path as FieldPath<ReportFormValues>);
+        return;
+      }
+      // An outage or a defect; either way the person is told rather than left waiting.
       setSaveError('errors.save.failed');
     }
   });

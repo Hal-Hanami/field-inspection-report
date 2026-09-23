@@ -1,6 +1,10 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import {
+  DraftRejectedError,
+  type InspectionRepository,
+} from '../../../data/InspectionRepository';
 import { createMemoryRepository } from '../../../data/memoryRepository';
 import { CHECK_ITEMS, type CheckItem, type CheckResult } from '../../../domain';
 import { checkItemKey, checkResultKey, t } from '../../../i18n/t';
@@ -137,7 +141,9 @@ describe('report form (DESIGN §5)', () => {
 
   it('§3.2: a repository failure is reported rather than swallowed', async () => {
     const failing = {
+      persistent: true,
       list: async () => [],
+      get: async () => null,
       save: async () => {
         throw new Error('network down');
       },
@@ -158,5 +164,52 @@ describe('report form (DESIGN §5)', () => {
 
     expect(await screen.findByRole('heading', { name: t('list.title') })).toBeInTheDocument();
     await expect(repository.list()).resolves.toHaveLength(0);
+  });
+
+  it('§7.2: a draft the server refuses is marked on the field the server names', async () => {
+    const refusing: InspectionRepository = {
+      persistent: true,
+      list: async () => [],
+      get: async () => null,
+      save: async () => {
+        throw new DraftRejectedError([
+          { path: 'inspectedAt', message: 'errors.inspectedAt.future' },
+        ]);
+      },
+    };
+    const { user } = renderApp({ route: '/reports/new', repository: refusing });
+
+    await fillValidDraft(user);
+    await user.click(submitButton());
+
+    const control = field(t('form.field.inspectedAt'));
+    await waitFor(() => expect(control).toHaveAttribute('aria-invalid', 'true'));
+    expect(describedTextOf(control)).toContain(t('errors.inspectedAt.future'));
+    expect(screen.getByRole('alert')).toHaveTextContent(t('errors.inspectedAt.future'));
+    expect(screen.queryByText(t('errors.save.failed'))).not.toBeInTheDocument();
+  });
+
+  it('§7.6: pressing the button again after a failure retries the same filing', async () => {
+    const keys: string[] = [];
+    let attempts = 0;
+    const flaky: InspectionRepository = {
+      ...createMemoryRepository({ reports: [] }),
+      save: async (draft, options) => {
+        keys.push(options.idempotencyKey);
+        attempts += 1;
+        if (attempts === 1) throw new Error('response lost');
+        return { ...draft, id: 'RPT-0001', submittedAt: '2026-09-22T00:41:00.000Z' };
+      },
+    };
+    const { user } = renderApp({ route: '/reports/new', repository: flaky });
+
+    await fillValidDraft(user);
+    await user.click(submitButton());
+    expect(await screen.findByText(t('errors.save.failed'))).toBeInTheDocument();
+    await user.click(submitButton());
+
+    expect(await screen.findByText(t('list.saved', { id: 'RPT-0001' }))).toBeInTheDocument();
+    expect(keys).toHaveLength(2);
+    expect(keys[1]).toBe(keys[0]);
   });
 });

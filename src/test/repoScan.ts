@@ -65,18 +65,30 @@ export function designSections(designPath = 'docs/DESIGN.md'): string[] {
   return [...ids].sort();
 }
 
-/** Every `§N.M` cited anywhere in the test suite. */
+/** The server's tests (DESIGN §7), which cite sections as `test_section_7_5_...`. */
+export function serverTestFiles(): string[] {
+  return walk('api/tests').filter((path) => path.endsWith('.py'));
+}
+
+/** Every `§N.M` cited anywhere in the web or the server test suite. */
 export function citedSections(): Set<string> {
+  const ids = [
+    ...testFiles().flatMap((path) =>
+      [...read(path).matchAll(/§(\d+(?:\.\d+)?)/g)].map((match) => match[1]),
+    ),
+    ...serverTestFiles().flatMap((path) =>
+      [...read(path).matchAll(/section_(\d+)(?:_(\d+))?/g)].map((match) =>
+        match[2] ? `${match[1]}.${match[2]}` : match[1],
+      ),
+    ),
+  ].filter((id): id is string => Boolean(id));
+
   const cited = new Set<string>();
-  for (const path of testFiles()) {
-    for (const match of read(path).matchAll(/§(\d+(?:\.\d+)?)/g)) {
-      const id = match[1];
-      if (!id) continue;
-      cited.add(id);
-      // A citation of §4.3 is a citation of §4 (public rule: a subsection counts).
-      const parent = id.split('.')[0];
-      if (parent) cited.add(parent);
-    }
+  for (const id of ids) {
+    cited.add(id);
+    // A citation of §4.3 is a citation of §4 (public rule: a subsection counts).
+    const parent = id.split('.')[0];
+    if (parent) cited.add(parent);
   }
   return cited;
 }

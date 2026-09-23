@@ -28,7 +28,7 @@ describe('language and leak guard (DESIGN §6)', () => {
     const known = new Set(Object.keys(ja));
     const used = new Set<string>();
     for (const path of sourceFiles()) {
-      for (const match of read(path).matchAll(/'((?:errors|app|list|form|equipmentType|checkItem|checkResult)\.[a-zA-Z.]+)'/g)) {
+      for (const match of read(path).matchAll(/'((?:errors|app|list|detail|form|equipmentType|checkItem|checkResult)\.[a-zA-Z.]+)'/g)) {
         if (match[1]) used.add(match[1]);
       }
     }

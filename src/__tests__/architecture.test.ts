@@ -32,7 +32,9 @@ describe('dependency rule (DESIGN §3)', () => {
   });
 
   it('§3.3: components take data from a screen, never from an adapter', () => {
-    const componentFiles = files.filter((path) => /^src\/features\/[^/]+\/components\//.test(path));
+    const componentFiles = files.filter((path) =>
+      /^src\/(features\/[^/]+\/)?components\//.test(path),
+    );
     expect(componentFiles.length).toBeGreaterThan(0);
 
     const offenders = componentFiles.flatMap((path) =>

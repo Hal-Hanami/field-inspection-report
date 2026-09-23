@@ -17,10 +17,19 @@ function spaFallback(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // `vite --mode server` (npm run dev:server) builds against the local API of DESIGN §7;
+  // any other mode uses the in-memory adapter (DESIGN §3.4).
+  define:
+    mode === 'server' ? { 'import.meta.env.VITE_API_BASE_URL': JSON.stringify('/api') } : {},
   // The site is served from a subdirectory, so assets are referenced relative to it.
   base: '/field-inspection-report/',
   plugins: [react(), spaFallback()],
+  // In development /api is the local FastAPI server, reached through this proxy so the
+  // browser sees one origin and needs no CORS.
+  server: {
+    proxy: { '/api': 'http://127.0.0.1:8000' },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
@@ -35,4 +44,4 @@ export default defineConfig({
       thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 },
     },
   },
-});
+}));
