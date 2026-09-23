@@ -137,7 +137,8 @@ src/
   `src/data`. This is what makes the rules testable without rendering, and re-usable from a
   future server.
 - **§3.2** `InspectionRepository` is the only port to the outside: `list()`, `get(id)` and
-  `save(draft, { idempotencyKey })`, all asynchronous. `get` resolves to `null` for an unknown id rather than
+  `save(draft, { idempotencyKey })`, all asynchronous, plus `persistent`, which says whether
+  a saved report outlives a reload. `get` resolves to `null` for an unknown id rather than
   throwing, because "no such report" is an answer, not a failure. `save` re-validates its
   input (§2) and rejects an invalid draft with the failing fields, so a rule that only the
   server knows still reaches the field it concerns.
@@ -147,11 +148,13 @@ src/
 - **§3.4** Two adapters implement the port. The in-memory one is seeded from
   `src/locales/seed.ja.json`, assigns `id` and `submittedAt` on save, and backs the static
   demo and the component tests. The HTTP one talks to the server (§7). `src/main.tsx` picks
-  one: HTTP when `VITE_API_BASE_URL` is set, memory otherwise. The screens cannot tell which
-  one they have, so the person running them cannot either: `npm run dev` therefore runs
-  against the server, and the in-memory adapter is reached only on purpose (`npm run
-  dev:demo`, the static demo build, the tests). A local session that looks like the real
-  system and forgets everything on reload is a trap, not a convenience.
+  one: HTTP when `VITE_API_BASE_URL` is set, memory otherwise. The notice at the foot of
+  every screen follows `persistent`: on memory it says that nothing filed survives a reload,
+  on the server that reports are kept, so it never claims a backend the build does not have
+  or denies one it does. Locally `npm run dev` runs against the server, and the in-memory
+  adapter is reached only on purpose (`npm run dev:demo`, the static demo build, the tests):
+  a local session that looks like the real system and forgets everything on reload is a
+  trap, not a convenience.
 - **§3.5** State that belongs to a screen lives in that screen's hook (`useReports`,
   `useReportForm`); components receive values and callbacks as props and render. There is no
   global state container, because the only shared object is the repository (§3.3).

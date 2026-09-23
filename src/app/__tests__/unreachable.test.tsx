@@ -7,6 +7,7 @@ import { renderApp } from '../../test/renderApp';
 /** DESIGN §4.7: a server that cannot be reached is reported, not waited for forever. */
 
 const unreachable: InspectionRepository = {
+  persistent: true,
   list: async () => {
     throw new TypeError('Failed to fetch');
   },

@@ -13,7 +13,7 @@ import {
 
 /**
  * The shipped adapter (DESIGN §3.4): reports live in memory and are lost on reload.
- * It is not a cache and not a stand-in for persistence.
+ * It is not a cache and not a stand-in for persistence; the notice in the UI says so.
  */
 
 export type MemoryRepositoryOptions = {
@@ -45,6 +45,8 @@ export function createMemoryRepository(
   const savedByKey = new Map<string, InspectionReport>();
 
   return {
+    persistent: false,
+
     async list() {
       return [...reports];
     },

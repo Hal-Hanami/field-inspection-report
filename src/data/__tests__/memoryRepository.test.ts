@@ -81,4 +81,7 @@ describe('memory repository (DESIGN §3.2, §3.4)', () => {
     await expect(repository.get('RPT-9999')).resolves.toBeNull();
   });
 
+  it('§3.4: in memory, nothing outlives a reload, and the adapter says so', () => {
+    expect(createMemoryRepository({ reports: [] }).persistent).toBe(false);
+  });
 });

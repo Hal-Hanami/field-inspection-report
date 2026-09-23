@@ -81,6 +81,19 @@ On both sides, business rules depend on nothing and everything else depends on t
 server is the authority on validity; the web keeps a copy so that a person sees every
 mistake before a round trip, and the shared cases keep the copy honest.
 
+## How it was built
+
+The specification, the code and the tests were written in collaboration with AI
+assistants: Claude Code for the design document, the implementation and the tests, and
+Claude Design for the visual design. The author set the direction and made the calls —
+the scope, a Python server as the authority on validity with the web keeping a checked
+copy, the fixes to adopt — reviewed the changes, and used the running application by hand,
+which is how some of the defects fixed in the history were found.
+
+The safeguards in this repository are what the code is held to regardless of who wrote a
+line: the design sections every test cites, the validation cases both suites run, and the
+CI gates listed above.
+
 ## Stack
 
 Web: React 19, TypeScript, Vite, React Hook Form with Zod, Vitest and Testing Library,
