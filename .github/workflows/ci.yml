@@ -34,10 +34,46 @@ jobs:
         with:
           path: dist
 
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: inspection
+          POSTGRES_PASSWORD: inspection
+          POSTGRES_DB: inspection_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U inspection"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: api
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://inspection:inspection@localhost:5432/inspection_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - run: uv sync --locked
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run pyright
+      # Includes the shared validation cases (DESIGN 7.3), the migrations run from empty
+      # (7.11), and the committed OpenAPI document and web types (7.4).
+      - run: uv run pytest
+
   deploy:
     # Nothing reaches the public site that has not passed the gates above. The job is
     # skipped while the repository is private, where Pages is not served anyway.
-    needs: verify
+    needs: [verify, api]
     if: github.event_name == 'push' && github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     permissions:

@@ -1,8 +1,9 @@
 # field-inspection-report
 
-A responsive web form for equipment inspections, and the list the office reads them in.
-One screen is filled in on a phone at the equipment; the other is read on a desktop. They
-are the same application and the same data, laid out for two very different moments.
+A responsive web form for equipment inspections, the list the office reads them in, and
+the API and database behind them. One screen is filled in on a phone at the equipment; the
+other is read on a desktop. They are the same application and the same data, laid out for
+two very different moments.
 
 The domain is fictional: the equipment types, the check items and the demo reports were
 written for this repository from public knowledge, and describe no real site or
@@ -10,52 +11,83 @@ organization.
 
 ## Scope
 
-Reports are held in memory. **Anything filed is lost on reload**, and every visitor starts
-from the same demo data. There is no backend, no account, no approval workflow and no
-photo upload. The repository interface in `src/data` is the seam where a real backend
-would attach; nothing else in the code assumes the data is local. The full list of
-non-goals is in [docs/DESIGN.md](docs/DESIGN.md).
+- **Web** (`src/`): React and TypeScript. The form, the list, and each report's detail.
+- **Server** (`api/`): Python, FastAPI and PostgreSQL. It validates every draft itself,
+  assigns ids, files a retried submission once, and pages the list.
+- **Public demo**: a static build of the web on the in-memory adapter, with no server.
+  **Anything filed there is lost on reload**, and every visitor starts from the same demo
+  data. The screens are identical on both adapters; `src/main.tsx` picks one.
+
+Not built: accounts, an approval workflow, photo upload, offline capture, dashboards, and
+a public deployment of the server. The full specification, with a reason for each rule,
+is [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Run it
 
+The web alone, on the in-memory adapter:
+
 ```sh
 npm install
-npm run dev        # http://localhost:5173
-npm test           # unit, component and repository-wide gates
-npm run build      # type check and production bundle
+npm run dev        # http://localhost:5173/field-inspection-report/
 ```
+
+The web with the server (needs Docker and [uv](https://docs.astral.sh/uv/)):
+
+```sh
+docker compose up -d --wait db                      # PostgreSQL on localhost:55432
+cd api
+uv sync
+uv run alembic upgrade head                         # build the schema
+uv run python -m app.seed ../src/locales/seed.ja.json
+uv run uvicorn app.asgi:app --port 8000             # the API under /api
+# in another terminal, at the repository root:
+npm run dev:server                                  # proxies /api to the server
+```
+
+## Tests
+
+```sh
+npm test                    # web: unit, component and repository-wide gates
+cd api && uv run pytest     # server: against the PostgreSQL started above
+```
+
+Alongside the usual tests, several read the repository itself and fail on:
+
+- a validity rule that the form and the server disagree on — both suites run the cases in
+  [`contracts/validation-cases.json`](contracts/validation-cases.json)
+- web types that no longer match the server's OpenAPI document
+- a design section that no test enforces
+- an import that breaks the dependency rule, in the web or in the server
+- Japanese text outside `src/locales`
+- a media query that undoes the phone layout, or a touch target under 44px
+
+The server's tests build their database by running every migration from empty, and check
+that the migrated schema is the one the code queries. Component tests find elements the
+way a screen reader does — by role, label and accessible name — so an accessible structure
+that breaks takes the suite with it.
 
 ## What is here
 
 | Path | Holds |
 |---|---|
 | `src/domain` | types, validity rules and severity — plain TypeScript, no framework |
-| `src/data` | the repository interface and the in-memory adapter behind it |
-| `src/features/report-form` | the form screen: its hook, its components, its styles |
-| `src/features/report-list` | the list screen, likewise |
-| `src/app` | routing, the shared frame, and the one place that picks an adapter |
+| `src/data` | the repository interface, its in-memory and HTTP adapters, the generated wire types |
+| `src/features/*` | one directory per screen: its hook, its components, its styles |
+| `src/app` | routing, the shared frame |
 | `src/locales` | every Japanese string the UI shows, and the demo data |
+| `api/app/domain` | the same rules on the server — plain Python, no framework |
+| `api/app/repository` | the storage interface and its PostgreSQL adapter |
+| `api/app/http` | FastAPI routes, wire schemas, problem responses |
+| `api/migrations` | Alembic revisions, the only author of the schema |
+| `contracts` | validation cases both test suites run |
 | `docs/DESIGN.md` | the specification: invariants, with the reason for each |
 
-Business rules live in `src/domain` and are run by both the form and the repository, so a
-rule cannot be skipped by calling the data layer directly. Everything else depends on the
-domain; the domain depends on nothing.
-
-## Tests
-
-`npm test` runs 64 tests. Alongside the usual unit and component tests, several of them
-read the repository itself and fail on:
-
-- an import that breaks the dependency rule
-- a design section that no test enforces
-- Japanese text outside `src/locales`
-- a media query that undoes the phone layout, or a touch target under 44px
-
-Component tests find elements the way a screen reader does — by role, label and accessible
-name — so an accessible structure that breaks takes the suite with it.
+On both sides, business rules depend on nothing and everything else depends on them. The
+server is the authority on validity; the web keeps a copy so that a person sees every
+mistake before a round trip, and the shared cases keep the copy honest.
 
 ## Stack
 
-React 19, TypeScript, Vite, React Hook Form with Zod, Vitest and Testing Library, plain CSS
-modules. No UI framework and no state-management library: with two screens and one shared
-object, neither pays for itself.
+Web: React 19, TypeScript, Vite, React Hook Form with Zod, Vitest and Testing Library,
+plain CSS modules. Server: Python 3.13, FastAPI, Pydantic, SQLAlchemy Core, Alembic,
+PostgreSQL 17, pytest, Ruff and Pyright in strict mode.
