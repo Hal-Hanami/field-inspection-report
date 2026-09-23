@@ -25,3 +25,10 @@ dist-ssr
 
 # Test output
 coverage
+
+# Python (api/)
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+api/.env

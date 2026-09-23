@@ -1,0 +1,519 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Field inspection reports",
+    "description": "Files inspection reports and lists them. See docs/DESIGN.md, section 7.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/reports": {
+      "get": {
+        "summary": "List reports, newest inspection first",
+        "operationId": "list_reports_api_reports_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "File a report",
+        "operationId": "create_report_api_reports_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Already created under this key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem"
+          }
+        }
+      }
+    },
+    "/api/reports/{report_id}": {
+      "get": {
+        "summary": "One report with the result of every check item",
+        "operationId": "get_report_api_reports__report_id__get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChecksOut": {
+        "properties": {
+          "appearance": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "caution",
+              "abnormal"
+            ],
+            "title": "Appearance"
+          },
+          "abnormalSound": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "caution",
+              "abnormal"
+            ],
+            "title": "Abnormalsound"
+          },
+          "temperature": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "caution",
+              "abnormal"
+            ],
+            "title": "Temperature"
+          },
+          "corrosion": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "caution",
+              "abnormal"
+            ],
+            "title": "Corrosion"
+          },
+          "surroundings": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "caution",
+              "abnormal"
+            ],
+            "title": "Surroundings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "appearance",
+          "abnormalSound",
+          "temperature",
+          "corrosion",
+          "surroundings"
+        ],
+        "title": "ChecksOut"
+      },
+      "DraftIn": {
+        "properties": {
+          "equipmentId": {
+            "type": "string",
+            "title": "Equipmentid",
+            "default": ""
+          },
+          "equipmentType": {
+            "type": "string",
+            "title": "Equipmenttype",
+            "default": ""
+          },
+          "inspectedAt": {
+            "type": "string",
+            "title": "Inspectedat",
+            "default": ""
+          },
+          "inspectorName": {
+            "type": "string",
+            "title": "Inspectorname",
+            "default": ""
+          },
+          "checks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Checks",
+            "default": {}
+          },
+          "remarks": {
+            "type": "string",
+            "title": "Remarks",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "DraftIn",
+        "description": "Plain strings on purpose: an empty or unknown value is a domain error with a key the\nform can show (DESIGN \u00a77.2), not a schema error the person cannot act on."
+      },
+      "FieldErrorOut": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "key"
+        ],
+        "title": "FieldErrorOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Problem": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "about:blank"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "integer",
+            "title": "Status"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "errors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FieldErrorOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "status"
+        ],
+        "title": "Problem",
+        "description": "RFC 9457 problem details (DESIGN \u00a77.10)."
+      },
+      "ReportOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "equipmentId": {
+            "type": "string",
+            "title": "Equipmentid"
+          },
+          "equipmentType": {
+            "type": "string",
+            "enum": [
+              "transformer",
+              "pole",
+              "switchgear",
+              "insulator",
+              "meter"
+            ],
+            "title": "Equipmenttype"
+          },
+          "inspectedAt": {
+            "type": "string",
+            "title": "Inspectedat"
+          },
+          "inspectorName": {
+            "type": "string",
+            "title": "Inspectorname"
+          },
+          "checks": {
+            "$ref": "#/components/schemas/ChecksOut"
+          },
+          "remarks": {
+            "type": "string",
+            "title": "Remarks"
+          },
+          "submittedAt": {
+            "type": "string",
+            "title": "Submittedat"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "caution",
+              "abnormal"
+            ],
+            "title": "Severity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "equipmentId",
+          "equipmentType",
+          "inspectedAt",
+          "inspectorName",
+          "checks",
+          "remarks",
+          "submittedAt",
+          "severity"
+        ],
+        "title": "ReportOut"
+      },
+      "ReportPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReportOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "ReportPage"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
