@@ -1,14 +1,14 @@
 import { z } from 'zod';
-import { severityOf } from './severity';
 import {
+  CHECK_ITEMS,
   CHECK_RESULTS,
   EQUIPMENT_ID_PATTERN,
   EQUIPMENT_TYPES,
+  INSPECTED_AT_PATTERN,
   INSPECTOR_NAME_MAX_LENGTH,
   REMARKS_MAX_LENGTH,
   REMARKS_MIN_LENGTH_WHEN_ABNORMAL,
   REPORT_ID_PATTERN,
-  type Checks,
   type InspectionReport,
   type ReportDraft,
 } from './types';
@@ -41,6 +41,31 @@ export function normalizeEquipmentId(value: string): string {
   return value.trim().toUpperCase();
 }
 
+/**
+ * Wall-clock time as a local `Date`, or `null` when the value is not a real moment in the
+ * device format. `new Date(string)` is not used: it accepts `2026/09/22` and rolls 30
+ * February over to March, and the server's parser does neither (DESIGN §2.4, §7.3).
+ */
+export function parseInspectedAt(value: string): Date | null {
+  const match = INSPECTED_AT_PATTERN.exec(value);
+  if (!match) return null;
+  const [year, month, day, hour, minute] = match.slice(1).map(Number) as [
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
+  const moment = new Date(year, month - 1, day, hour, minute);
+  const exact =
+    moment.getFullYear() === year &&
+    moment.getMonth() === month - 1 &&
+    moment.getDate() === day &&
+    moment.getHours() === hour &&
+    moment.getMinutes() === minute;
+  return exact ? moment : null;
+}
+
 export function normalizeDraft(draft: ReportDraft): ReportDraft {
   return {
     ...draft,
@@ -59,7 +84,8 @@ export function createDraftSchema(now: Date) {
     .object({
       equipmentId: z
         .string({ error: 'errors.equipmentId.required' })
-        .min(1, { error: 'errors.equipmentId.required' })
+        // Checked after trimming: `min(1)` alone lets spaces through, to be saved as "".
+        .refine((value) => value.trim().length > 0, { error: 'errors.equipmentId.required' })
         // §1.2 — the pattern is checked against the normalized value. An empty field is
         // already reported as missing; telling someone their blank field is the wrong
         // shape sends them looking for a typo that is not there.
@@ -71,14 +97,14 @@ export function createDraftSchema(now: Date) {
       inspectedAt: z
         .string({ error: 'errors.inspectedAt.required' })
         .min(1, { error: 'errors.inspectedAt.required' })
-        .refine((value) => value.length === 0 || !Number.isNaN(new Date(value).getTime()), {
+        .refine((value) => value.length === 0 || parseInspectedAt(value) !== null, {
           error: 'errors.inspectedAt.invalid',
         })
         // A value that does not parse cannot be in the future; saying both at once sends
         // the reader after the wrong problem.
         .refine((value) => {
-          const moment = new Date(value).getTime();
-          return Number.isNaN(moment) || moment <= now.getTime();
+          const moment = parseInspectedAt(value);
+          return moment === null || moment.getTime() <= now.getTime();
         }, { error: 'errors.inspectedAt.future' }),
       inspectorName: z
         .string({ error: 'errors.inspectorName.required' })
@@ -87,18 +113,29 @@ export function createDraftSchema(now: Date) {
           error: 'errors.inspectorName.tooLong',
         }),
       checks: checksSchema,
-      remarks: z.string().max(REMARKS_MAX_LENGTH, { error: 'errors.remarks.tooLong' }),
-    })
-    .superRefine((draft, ctx) => {
-      // §2.2 — an abnormal finding with no description cannot be acted on.
-      if (severityOf(draft.checks as Checks) !== 'abnormal') return;
-      if (draft.remarks.trim().length >= REMARKS_MIN_LENGTH_WHEN_ABNORMAL) return;
-      ctx.addIssue({
-        code: 'custom',
-        path: ['remarks'],
-        message: 'errors.remarks.requiredForAbnormal',
-      });
+      // `.length` counts UTF-16 code units, as the text box's maxlength does; Zod's
+      // `.max()` counts code points and would allow what the box cannot hold (DESIGN §2).
+      remarks: z
+        .string()
+        .refine((value) => value.length <= REMARKS_MAX_LENGTH, { error: 'errors.remarks.tooLong' }),
     });
+}
+
+/**
+ * §2.2, checked apart from the schema: Zod skips object-level refinements while any field
+ * fails, which would hold this error back until every other field was fixed — one more
+ * round trip, against §2.7. Only answered items count; an unanswered one is its own error.
+ */
+function abnormalWithoutRemarks(input: unknown): DraftValidationError[] {
+  if (typeof input !== 'object' || input === null) return [];
+  const { checks, remarks } = input as { checks?: unknown; remarks?: unknown };
+  if (typeof checks !== 'object' || checks === null) return [];
+  const answers = checks as Record<string, unknown>;
+  const anyAbnormal = CHECK_ITEMS.some((item) => answers[item] === 'abnormal');
+  if (!anyAbnormal) return [];
+  const text = typeof remarks === 'string' ? remarks.trim() : '';
+  if (text.length >= REMARKS_MIN_LENGTH_WHEN_ABNORMAL) return [];
+  return [{ path: 'remarks', message: 'errors.remarks.requiredForAbnormal' }];
 }
 
 export type DraftValidationError = { path: string; message: string };
@@ -110,15 +147,15 @@ export type DraftValidationResult =
 /** §2.7 — every failing field is reported at once, not one per submit. */
 export function validateDraft(input: unknown, now: Date): DraftValidationResult {
   const parsed = createDraftSchema(now).safeParse(input);
-  if (!parsed.success) {
-    return {
-      valid: false,
-      errors: parsed.error.issues.map((issue) => ({
-        path: issue.path.join('.'),
-        message: issue.message,
-      })),
-    };
-  }
+  const fieldErrors = parsed.success
+    ? []
+    : parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message }));
+  // A remarks field that is also too long reports that first; one message per field.
+  const crossField = abnormalWithoutRemarks(input).filter(
+    (error) => !fieldErrors.some((existing) => existing.path === error.path),
+  );
+  const errors = [...fieldErrors, ...crossField];
+  if (errors.length > 0 || !parsed.success) return { valid: false, errors };
   return { valid: true, draft: normalizeDraft(parsed.data as ReportDraft) };
 }
 

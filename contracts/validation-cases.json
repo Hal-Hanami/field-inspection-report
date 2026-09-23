@@ -1,0 +1,549 @@
+{
+  "description": "Validation outcomes that the web (src/domain) and the server (api/app/domain) must both produce. See DESIGN section 7.3. A case applies `patch` to `baseDraft` (check results are merged item by item) and validates it with the clock reading `now`, a wall-clock time in the users' zone.",
+  "baseDraft": {
+    "equipmentId": "TR-0142",
+    "equipmentType": "transformer",
+    "inspectedAt": "2026-09-23T09:30",
+    "inspectorName": "Inspector A",
+    "checks": {
+      "appearance": "ok",
+      "abnormalSound": "ok",
+      "temperature": "ok",
+      "corrosion": "ok",
+      "surroundings": "ok"
+    },
+    "remarks": ""
+  },
+  "draftCases": [
+    {
+      "name": "the base draft is valid",
+      "now": "2026-09-23T10:00",
+      "patch": {},
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {}
+      }
+    },
+    {
+      "name": "equipment id is trimmed and upper-cased before it is checked",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentId": "  tr-0142 "
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {
+          "equipmentId": "TR-0142"
+        }
+      }
+    },
+    {
+      "name": "a missing equipment id is reported as missing, not as the wrong shape",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentId": ""
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "equipmentId": "errors.equipmentId.required"
+        }
+      }
+    },
+    {
+      "name": "an equipment id of spaces only is missing",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentId": "   "
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "equipmentId": "errors.equipmentId.required"
+        }
+      }
+    },
+    {
+      "name": "an equipment id of the wrong shape",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentId": "TR142"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "equipmentId": "errors.equipmentId.format"
+        }
+      }
+    },
+    {
+      "name": "full-width digits are not the ASCII digits the id is written in",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentId": "TR-\uff10\uff11\uff14\uff12"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "equipmentId": "errors.equipmentId.format"
+        }
+      }
+    },
+    {
+      "name": "an unselected equipment type",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentType": ""
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "equipmentType": "errors.equipmentType.required"
+        }
+      }
+    },
+    {
+      "name": "an equipment type outside the list",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentType": "boiler"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "equipmentType": "errors.equipmentType.required"
+        }
+      }
+    },
+    {
+      "name": "a missing inspection time",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": ""
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.required"
+        }
+      }
+    },
+    {
+      "name": "a date written with slashes is not the device format",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026/09/22 10:00"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.invalid"
+        }
+      }
+    },
+    {
+      "name": "30 February does not roll over into March",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026-02-30T10:00"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.invalid"
+        }
+      }
+    },
+    {
+      "name": "seconds are not part of the device format",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026-09-22T10:00:00"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.invalid"
+        }
+      }
+    },
+    {
+      "name": "a date without a time",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026-09-22"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.invalid"
+        }
+      }
+    },
+    {
+      "name": "a trailing line break is not part of the format",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026-09-22T10:00\n"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.invalid"
+        }
+      }
+    },
+    {
+      "name": "hour 24 is not a time of day",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026-09-22T24:00"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.invalid"
+        }
+      }
+    },
+    {
+      "name": "one minute in the future",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026-09-23T10:01"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectedAt": "errors.inspectedAt.future"
+        }
+      }
+    },
+    {
+      "name": "the current minute is not the future",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2026-09-23T10:00"
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {}
+      }
+    },
+    {
+      "name": "a leap day that exists",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectedAt": "2024-02-29T08:00"
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {}
+      }
+    },
+    {
+      "name": "a missing inspector",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectorName": ""
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectorName": "errors.inspectorName.required"
+        }
+      }
+    },
+    {
+      "name": "an inspector name of ideographic spaces only",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectorName": "\u3000\u3000"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectorName": "errors.inspectorName.required"
+        }
+      }
+    },
+    {
+      "name": "a byte order mark is white space to trim",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectorName": "\ufeff"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectorName": "errors.inspectorName.required"
+        }
+      }
+    },
+    {
+      "name": "an information separator is not white space to trim",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectorName": "\u001c"
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {
+          "inspectorName": "\u001c"
+        }
+      }
+    },
+    {
+      "name": "an inspector name is trimmed",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectorName": "  Inspector A\u3000"
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {
+          "inspectorName": "Inspector A"
+        }
+      }
+    },
+    {
+      "name": "32 characters after trimming is within the limit",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectorName": "  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  "
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {
+          "inspectorName": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    },
+    {
+      "name": "33 characters is over the limit",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "inspectorName": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "inspectorName": "errors.inspectorName.tooLong"
+        }
+      }
+    },
+    {
+      "name": "an unanswered item is not an implied ok",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "checks": {
+          "temperature": ""
+        }
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "checks.temperature": "errors.checks.required"
+        }
+      }
+    },
+    {
+      "name": "an item answered outside the scale",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "checks": {
+          "corrosion": "fine"
+        }
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "checks.corrosion": "errors.checks.required"
+        }
+      }
+    },
+    {
+      "name": "an abnormal item with no remarks",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "checks": {
+          "appearance": "abnormal"
+        },
+        "remarks": ""
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "remarks": "errors.remarks.requiredForAbnormal"
+        }
+      }
+    },
+    {
+      "name": "four characters after trimming is too short for an abnormal finding",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "checks": {
+          "appearance": "abnormal"
+        },
+        "remarks": "  abcd  "
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "remarks": "errors.remarks.requiredForAbnormal"
+        }
+      }
+    },
+    {
+      "name": "five characters describe an abnormal finding",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "checks": {
+          "appearance": "abnormal"
+        },
+        "remarks": " abcde "
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {
+          "remarks": "abcde"
+        }
+      }
+    },
+    {
+      "name": "a caution needs no remarks",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "checks": {
+          "temperature": "caution"
+        }
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {}
+      }
+    },
+    {
+      "name": "200 characters of remarks",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "remarks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {}
+      }
+    },
+    {
+      "name": "201 characters of remarks",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "remarks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "remarks": "errors.remarks.tooLong"
+        }
+      }
+    },
+    {
+      "name": "100 emoji are 200 UTF-16 code units, within the limit",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "remarks": "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00"
+      },
+      "expect": {
+        "valid": true,
+        "normalizedPatch": {}
+      }
+    },
+    {
+      "name": "101 emoji are 202 UTF-16 code units, over the limit",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "remarks": "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "remarks": "errors.remarks.tooLong"
+        }
+      }
+    },
+    {
+      "name": "every failing field is reported at once",
+      "now": "2026-09-23T10:00",
+      "patch": {
+        "equipmentId": "",
+        "equipmentType": "",
+        "inspectedAt": "",
+        "inspectorName": "",
+        "checks": {
+          "appearance": "abnormal",
+          "abnormalSound": "",
+          "temperature": "",
+          "corrosion": "",
+          "surroundings": ""
+        },
+        "remarks": ""
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "equipmentId": "errors.equipmentId.required",
+          "equipmentType": "errors.equipmentType.required",
+          "inspectedAt": "errors.inspectedAt.required",
+          "inspectorName": "errors.inspectorName.required",
+          "checks.abnormalSound": "errors.checks.required",
+          "checks.temperature": "errors.checks.required",
+          "checks.corrosion": "errors.checks.required",
+          "checks.surroundings": "errors.checks.required",
+          "remarks": "errors.remarks.requiredForAbnormal"
+        }
+      }
+    }
+  ],
+  "severityCases": [
+    {
+      "checks": {
+        "appearance": "ok",
+        "abnormalSound": "ok",
+        "temperature": "ok",
+        "corrosion": "ok",
+        "surroundings": "ok"
+      },
+      "severity": "ok"
+    },
+    {
+      "checks": {
+        "appearance": "ok",
+        "abnormalSound": "ok",
+        "temperature": "ok",
+        "corrosion": "caution",
+        "surroundings": "ok"
+      },
+      "severity": "caution"
+    },
+    {
+      "checks": {
+        "appearance": "caution",
+        "abnormalSound": "ok",
+        "temperature": "ok",
+        "corrosion": "ok",
+        "surroundings": "abnormal"
+      },
+      "severity": "abnormal"
+    },
+    {
+      "checks": {
+        "appearance": "abnormal",
+        "abnormalSound": "abnormal",
+        "temperature": "abnormal",
+        "corrosion": "abnormal",
+        "surroundings": "abnormal"
+      },
+      "severity": "abnormal"
+    }
+  ]
+}

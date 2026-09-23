@@ -44,8 +44,13 @@ export type InspectionReport = ReportDraft & {
   submittedAt: string;
 };
 
-export const EQUIPMENT_ID_PATTERN = /^[A-Z]{2}-\d{4}$/;
-export const REPORT_ID_PATTERN = /^RPT-\d{4}$/;
+// ASCII digits spelled out: `\d` is ASCII-only here and Unicode-wide in Python, and the
+// server must agree with this pattern (DESIGN §1.2, §7.3).
+export const EQUIPMENT_ID_PATTERN = /^[A-Z]{2}-[0-9]{4}$/;
+// At least four digits, not exactly four: report 10000 is still a report (DESIGN §1.2).
+export const REPORT_ID_PATTERN = /^RPT-[0-9]{4,}$/;
+/** The value a `datetime-local` control produces, and the only form accepted (DESIGN §2.4). */
+export const INSPECTED_AT_PATTERN = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})$/;
 
 export const REMARKS_MAX_LENGTH = 200;
 export const REMARKS_MIN_LENGTH_WHEN_ABNORMAL = 5;
