@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { t } from '../../i18n/t';
 import { ReportForm } from './components/ReportForm';
 import { useReportForm } from './useReportForm';
+import styles from './ReportFormScreen.module.css';
 
 /**
  * Filing a report ends on the list, with the new report named (DESIGN §4.2): the person
@@ -15,8 +16,8 @@ export function ReportFormScreen() {
 
   return (
     <section aria-labelledby="form-title">
-      <h2 id="form-title">{t('form.title')}</h2>
-      <p>{t('form.description')}</p>
+      <h2 id="form-title" className={styles.title}>{t('form.title')}</h2>
+      <p className={styles.description}>{t('form.description')}</p>
       <ReportForm
         form={form}
         submit={submit}

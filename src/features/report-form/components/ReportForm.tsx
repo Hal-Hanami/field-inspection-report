@@ -104,6 +104,7 @@ export function ReportForm({
         </p>
         <input
           id={fieldId('equipmentId')}
+          className={`${styles.code} ${styles.short}`}
           type="text"
           inputMode="text"
           autoCapitalize="characters"
@@ -131,6 +132,7 @@ export function ReportForm({
         </label>
         <select
           id={fieldId('equipmentType')}
+          className={styles.short}
           aria-required="true"
           aria-invalid={errors.equipmentType ? 'true' : undefined}
           aria-describedby={errors.equipmentType ? errorId('equipmentType') : undefined}
@@ -156,6 +158,7 @@ export function ReportForm({
         </label>
         <input
           id={fieldId('inspectedAt')}
+          className={`${styles.code} ${styles.medium}`}
           type="datetime-local"
           aria-required="true"
           aria-invalid={errors.inspectedAt ? 'true' : undefined}
@@ -176,6 +179,7 @@ export function ReportForm({
         </label>
         <input
           id={fieldId('inspectorName')}
+          className={styles.long}
           type="text"
           autoComplete="name"
           aria-required="true"

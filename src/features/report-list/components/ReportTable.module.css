@@ -11,8 +11,8 @@
 .caption {
   text-align: left;
   color: var(--color-muted);
-  font-size: 0.875rem;
-  padding-bottom: var(--space-sm);
+  font-size: var(--font-size-sm);
+  padding-bottom: 12px;
 }
 
 /* Column headers are the labels on each cell below 768px, carried by `data-label`. */
@@ -27,45 +27,81 @@
 
 .row {
   display: block;
-  margin-bottom: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
+  margin-bottom: 12px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
 }
 
-.row > * {
-  display: flex;
-  gap: var(--space-md);
-  justify-content: space-between;
-  align-items: baseline;
-  padding: var(--space-xs) 0;
-  text-align: right;
-  border-bottom: 1px solid var(--color-bg);
+/* An abnormal report is the one the office must not miss: tinted and outlined. */
+.row[data-severity='abnormal'] {
+  background-color: var(--color-abnormal-bg);
+  border: 2px solid var(--color-abnormal-fg);
 }
 
-.row > *:last-child {
-  border-bottom: none;
+/* Each cell is a label/value line of a two-column grid. */
+.row > * {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 4px var(--space-md);
+  text-align: left;
+  font-weight: 400;
 }
 
 .row > *::before {
   content: attr(data-label);
   color: var(--color-muted);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-sm);
   font-weight: 400;
-  text-align: left;
-  white-space: nowrap;
 }
 
-.rowHeader {
+/* The report id heads the card, separated from the details below it. */
+.row > .rowHeader {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-md);
   font-weight: 700;
 }
 
+.row[data-severity='abnormal'] > .rowHeader {
+  border-bottom-color: var(--color-abnormal-border);
+}
+
+.row > *:last-child {
+  padding-bottom: var(--space-md);
+}
+
+.code {
+  font-family: var(--font-family-code);
+  letter-spacing: 0.02em;
+}
+
+.none {
+  color: var(--color-muted);
+}
+
 .remarks {
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 768px) {
+  .table {
+    table-layout: fixed;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+  }
+
+  .caption {
+    padding: 12px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+  }
+
   .head {
     position: static;
     width: auto;
@@ -75,33 +111,72 @@
 
   .head th {
     text-align: left;
-    font-size: 0.875rem;
-    color: var(--color-muted);
-    border-bottom: 2px solid var(--color-border);
-    padding: var(--space-sm);
+    vertical-align: bottom;
+    font-size: var(--font-size-sm);
+    padding: 10px 12px;
+    background-color: var(--color-surface-sunken);
+    border-bottom: 2px solid var(--color-text);
+    white-space: nowrap;
   }
 
-  .row {
+  /* Fixed layout: widths are set once on the header row. The remarks take the rest. */
+  .head th:nth-child(1),
+  .head th:nth-child(2) {
+    width: 104px;
+  }
+
+  .head th:nth-child(3) {
+    width: 96px;
+  }
+
+  .head th:nth-child(4) {
+    width: 160px;
+  }
+
+  .head th:nth-child(5) {
+    width: 112px;
+  }
+
+  .head th:nth-child(6) {
+    width: 108px;
+  }
+
+  .row,
+  .row[data-severity='abnormal'] {
     display: table-row;
     margin: 0;
-    padding: 0;
-    background-color: var(--color-surface);
     border: none;
   }
 
-  .row > * {
+  .row > *,
+  .row > .rowHeader {
     display: table-cell;
-    text-align: left;
     vertical-align: top;
-    padding: var(--space-sm);
+    margin: 0;
+    padding: 12px;
+    font-size: var(--font-size-table);
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .row[data-severity='abnormal'] > *,
+  .row[data-severity='abnormal'] > .rowHeader {
+    border-bottom-color: var(--color-abnormal-border);
+  }
+
+  .row > .rowHeader {
+    font-weight: 700;
   }
 
   .row > *::before {
     content: none;
   }
 
-  .remarks {
-    max-width: 22rem;
+  .row > .severity {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .nowrap {
+    white-space: nowrap;
   }
 }

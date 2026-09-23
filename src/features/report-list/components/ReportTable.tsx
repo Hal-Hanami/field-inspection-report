@@ -25,23 +25,34 @@ export function ReportTable({ reports }: { reports: InspectionReport[] }) {
         </tr>
       </thead>
       <tbody>
-        {reports.map((report) => (
-          <tr key={report.id} className={styles.row}>
-            <th scope="row" className={styles.rowHeader} data-label={t('list.column.id')}>
-              {report.id}
-            </th>
-            <td data-label={t('list.column.equipment')}>{report.equipmentId}</td>
-            <td data-label={t('list.column.type')}>{t(equipmentTypeKey(report.equipmentType))}</td>
-            <td data-label={t('list.column.inspectedAt')}>{formatDateTime(report.inspectedAt)}</td>
-            <td data-label={t('list.column.inspector')}>{report.inspectorName}</td>
-            <td data-label={t('list.column.severity')}>
-              <SeverityBadge result={severityOf(report.checks)} />
-            </td>
-            <td data-label={t('list.column.remarks')} className={styles.remarks}>
-              {report.remarks || t('list.remarks.none')}
-            </td>
-          </tr>
-        ))}
+        {reports.map((report) => {
+          const severity = severityOf(report.checks);
+          return (
+            // The row repeats the severity so that CSS can tint abnormal rows; the badge
+            // stays the accessible signal (DESIGN §4.5).
+            <tr key={report.id} className={styles.row} data-severity={severity}>
+              <th scope="row" className={styles.rowHeader} data-label={t('list.column.id')}>
+                <span className={styles.code}>{report.id}</span>
+              </th>
+              <td data-label={t('list.column.equipment')}>
+                <span className={styles.code}>{report.equipmentId}</span>
+              </td>
+              <td data-label={t('list.column.type')}>{t(equipmentTypeKey(report.equipmentType))}</td>
+              <td data-label={t('list.column.inspectedAt')} className={styles.nowrap}>
+                <span className={styles.code}>{formatDateTime(report.inspectedAt)}</span>
+              </td>
+              <td data-label={t('list.column.inspector')} className={styles.nowrap}>
+                {report.inspectorName}
+              </td>
+              <td data-label={t('list.column.severity')} className={styles.severity}>
+                <SeverityBadge result={severity} />
+              </td>
+              <td data-label={t('list.column.remarks')} className={styles.remarks}>
+                {report.remarks || <span className={styles.none}>{t('list.remarks.none')}</span>}
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

@@ -5,34 +5,63 @@
  */
 
 :root {
-  --color-bg: #f4f6f8;
+  --color-bg: #f2f3f5;
   --color-surface: #ffffff;
-  --color-text: #1b1f24;
-  --color-muted: #5b6673;
-  --color-border: #ccd3da;
-  --color-accent: #0b5394;
+  --color-surface-sunken: #e8ebee;
+  --color-text: #1a1d21;
+  --color-muted: #4f5761;
+  --color-border: #cdd2d8;
+  /* Borders that outline a control must reach 3:1 against the page (WCAG 1.4.11). */
+  --color-border-strong: #5f6771;
+  --color-accent: #0b4f9c;
+  --color-accent-hover: #083d7a;
   --color-accent-contrast: #ffffff;
-  --color-ok-fg: #17603a;
-  --color-ok-bg: #e4f4ea;
-  --color-caution-fg: #7a5200;
-  --color-caution-bg: #fdf1d8;
-  --color-abnormal-fg: #97121b;
-  --color-abnormal-bg: #fce8e8;
-  --color-error: #97121b;
+  --color-header-bg: #1a1d21;
+  --color-focus: #ffc400;
+  --color-ok-fg: #1d6b3a;
+  --color-ok-bg: #e5f3ea;
+  --color-caution-fg: #7a4b00;
+  --color-caution-bg: #fff0d1;
+  --color-abnormal-fg: #a3161b;
+  --color-abnormal-bg: #fcecec;
+  --color-abnormal-border: #e3a8aa;
+  --color-error: #b41e24;
+  --color-disabled-bg: #d5d9de;
+  --color-disabled-text: #3e444c;
 
   /* DESIGN §5.4 — the smallest target a gloved thumb can hit. */
   --control-min-height: 44px;
+  /* Actual sizes sit above that floor: larger on the phone, where gloves are worn. */
+  --size-control: 52px;
+  --size-choice: 56px;
 
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --radius: 8px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --radius: 4px;
+  --radius-sm: 2px;
+  --content-max-width: 1200px;
+
+  /* Universal-design faces: 0/O, 1/l/I and 6/8 are drawn apart, which is what an
+     equipment identifier read in sunlight needs. The fixed-width cut is for codes. */
+  --font-family: 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
+  --font-family-code: 'BIZ UDGothic', var(--font-family);
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-table: 15px;
+  --font-size-base: 16px;
+  --font-size-md: 18px;
+  --font-size-lg: 22px;
+  --font-size-xl: 28px;
+  --line-height-body: 1.7;
+  --line-height-tight: 1.4;
 
   color-scheme: light;
-  font-family: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-  line-height: 1.6;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
   color: var(--color-text);
   background-color: var(--color-bg);
 }
@@ -52,17 +81,25 @@ body {
 h1,
 h2,
 h3 {
-  line-height: 1.3;
+  line-height: var(--line-height-tight);
   margin: 0 0 var(--space-sm);
 }
 
 a {
   color: var(--color-accent);
+  text-underline-offset: 3px;
 }
 
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* A dark inner ring and a yellow outer ring: one of the two contrasts with any
+   background the page uses, including the dark header. */
 :focus-visible {
-  outline: 3px solid var(--color-accent);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-text);
 }
 
 input,
@@ -84,47 +121,93 @@ button {
 input:not([type='radio']):not([type='checkbox']),
 select,
 textarea {
+  display: block;
   width: 100%;
-  /* 1rem keeps iOS from zooming on focus, which throws away the form's scroll position. */
-  font-size: 1rem;
+  /* 16px or more keeps iOS from zooming on focus, which throws away the scroll position. */
+  font-size: var(--font-size-md);
   color: var(--color-text);
-  padding: 0 var(--space-sm);
-  border: 1px solid var(--color-border);
+  padding: 0 14px;
+  border: 2px solid var(--color-border-strong);
   border-radius: var(--radius);
   background-color: var(--color-surface);
 }
 
+input:not([type='radio']):not([type='checkbox']),
+select {
+  height: var(--size-control);
+}
+
 textarea {
-  padding: var(--space-sm);
-  min-height: calc(var(--control-min-height) * 2);
+  padding: 12px 14px;
+  min-height: 144px;
   resize: vertical;
 }
 
-input[type='radio'] {
-  width: 1.25rem;
-  height: 1.25rem;
-  accent-color: var(--color-accent);
+input:not([type='radio']):not([type='checkbox']):focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--color-text);
+  outline-offset: 0;
+  box-shadow: none;
 }
 
-input[aria-invalid='true'],
+/* Matches the specificity of the focus rule above and comes after it, so an invalid
+   control stays red while focused instead of losing its error state. */
+input:not([type='radio']):not([type='checkbox'])[aria-invalid='true'],
 select[aria-invalid='true'],
 textarea[aria-invalid='true'] {
   border-color: var(--color-error);
-  border-width: 2px;
+  box-shadow: inset 0 0 0 1px var(--color-error);
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--size-choice);
   min-width: var(--control-min-height);
-  padding: 0 var(--space-lg);
-  border: 1px solid transparent;
+  padding: 0 32px;
+  border: 2px solid var(--color-accent);
   border-radius: var(--radius);
   background-color: var(--color-accent);
   color: var(--color-accent-contrast);
+  font-size: var(--font-size-md);
+  font-weight: 700;
   cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 
 button[data-variant='secondary'] {
   background-color: var(--color-surface);
-  border-color: var(--color-border);
+  border-color: var(--color-border-strong);
   color: var(--color-text);
+}
+
+button[data-variant='secondary']:hover {
+  background-color: var(--color-bg);
+}
+
+button:disabled {
+  background-color: var(--color-disabled-bg);
+  border-color: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --size-control: 48px;
+    --size-choice: 48px;
+  }
+
+  input:not([type='radio']):not([type='checkbox']),
+  select,
+  textarea,
+  button {
+    font-size: var(--font-size-base);
+  }
 }

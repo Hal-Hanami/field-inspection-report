@@ -1,149 +1,326 @@
-/* Mobile-first (DESIGN §4.4): one column on the phone, two columns from 768px. */
+/* Mobile-first (DESIGN §4.4): one column on the phone; from 768px the check items put
+   their name beside the choices and the buttons sit side by side. */
 
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-  max-width: 44rem;
+  max-width: 720px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
 }
 
 .field > label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0 0 6px;
   font-weight: 700;
+  line-height: 1.5;
 }
 
+/* A word, not a colour or an asterisk: the absence of the label is what marks a field
+   optional. */
 .required {
-  font-size: 0.75rem;
-  font-weight: 400;
-  color: var(--color-abnormal-fg);
-  background-color: var(--color-abnormal-bg);
-  border-radius: var(--radius);
-  padding: 0 var(--space-xs);
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1;
 }
 
-.hint,
-.counter {
-  margin: 0;
-  font-size: 0.8125rem;
+.hint {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
   color: var(--color-muted);
 }
 
 .counter {
+  margin: 6px 0 0;
   text-align: right;
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.code {
+  font-family: var(--font-family-code);
+  letter-spacing: 0.04em;
+}
+
+/* An exclamation mark in a filled circle leads every error message. */
+.error,
+.summaryTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.error::before,
+.summaryTitle::before {
+  content: '!';
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background-color: var(--color-error);
+  color: var(--color-accent-contrast);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .error {
-  margin: 0;
-  font-size: 0.875rem;
+  margin: var(--space-sm) 0 0;
+  font-size: var(--font-size-table);
   font-weight: 700;
+  line-height: 1.5;
   color: var(--color-error);
 }
 
-.summary {
-  padding: var(--space-md);
-  border: 2px solid var(--color-error);
+.summary,
+.saveError {
+  margin: 0;
+  padding: var(--space-md) 20px;
+  border: 3px solid var(--color-error);
   border-radius: var(--radius);
-  background-color: var(--color-abnormal-bg);
+  background-color: var(--color-surface);
 }
 
 .summaryTitle {
   margin: 0 0 var(--space-sm);
-  font-size: 1rem;
-  color: var(--color-error);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+}
+
+.summaryTitle::before {
+  margin-top: 3px;
 }
 
 .summaryList {
   margin: 0;
-  padding-left: var(--space-lg);
+  padding: 0;
+  list-style: none;
+}
+
+.summaryList a {
+  display: inline-block;
+  min-height: var(--control-min-height);
+  padding: 6px 0;
+  color: var(--color-error);
+  font-weight: 700;
+  line-height: 1.6;
 }
 
 .saveError {
-  margin: 0;
-  padding: var(--space-sm) var(--space-md);
-  border-left: 4px solid var(--color-error);
-  background-color: var(--color-abnormal-bg);
   color: var(--color-error);
+  font-weight: 700;
 }
 
 .checks {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  margin: 0;
-  padding: var(--space-md);
+  margin: var(--space-sm) 0 0;
+  padding: 4px var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background-color: var(--color-surface);
 }
 
+/* Floated legends lay out like ordinary blocks instead of sitting in the border. */
 .checksLegend {
+  float: left;
+  width: 100%;
+  padding: 14px 0 12px;
+  border-bottom: 2px solid var(--color-text);
+  font-size: var(--font-size-md);
   font-weight: 700;
-  padding: 0 var(--space-xs);
+  line-height: 1.5;
 }
 
 .checkItem {
+  clear: both;
   margin: 0;
-  padding: 0;
+  padding: var(--space-md) 0;
   border: none;
 }
 
+.checkItem + .checkItem {
+  border-top: 1px solid var(--color-border);
+}
+
 .checkItemLegend {
+  float: left;
+  width: 100%;
+  margin: 0 0 10px;
   padding: 0;
-  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .results {
-  display: flex;
+  clear: both;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-sm);
 }
 
+.checkItem > .error {
+  clear: both;
+}
+
+/* The radio is hidden but stays focusable; the whole label is the button. */
 .radio {
-  flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   /* DESIGN §5.4 — the whole chip is the target, not just the dot. */
   min-height: var(--control-min-height);
+  height: var(--size-choice);
   padding: 0 var(--space-sm);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong);
   border-radius: var(--radius);
+  background-color: var(--color-surface);
+  font-size: 17px;
+  line-height: 1;
   cursor: pointer;
 }
 
+.radio input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+/* Shapes repeat the severity badge (DESIGN §4.5), so a choice reads the same in the
+   form and in the list. */
+.radio::before {
+  font-size: 14px;
+}
+
+.radio[data-result='ok'] {
+  --result-color: var(--color-ok-fg);
+}
+
+.radio[data-result='ok']::before {
+  content: '\25CF';
+  color: var(--result-color);
+}
+
+.radio[data-result='caution'] {
+  --result-color: var(--color-caution-fg);
+}
+
+.radio[data-result='caution']::before {
+  content: '\25B2';
+  color: var(--result-color);
+}
+
+.radio[data-result='abnormal'] {
+  --result-color: var(--color-abnormal-fg);
+}
+
+.radio[data-result='abnormal']::before {
+  content: '\25A0';
+  color: var(--result-color);
+}
+
+/* Selected: filled with its own colour and inverted to white. The change is in
+   lightness, which survives colour blindness and glare, not only in hue. */
 .radio:has(input:checked) {
-  border-color: var(--color-accent);
-  border-width: 2px;
+  background-color: var(--result-color);
+  border-color: var(--result-color);
+  color: var(--color-accent-contrast);
   font-weight: 700;
-  background-color: var(--color-bg);
+}
+
+.radio:has(input:checked)::before {
+  color: var(--color-accent-contrast);
 }
 
 .radio:has(input:focus-visible) {
-  outline: 3px solid var(--color-accent);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-text);
+}
+
+.checkItem[aria-invalid='true'] .radio {
+  border-color: var(--color-error);
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: 12px;
+  margin-top: var(--space-sm);
 }
 
 @media (min-width: 768px) {
+  .short {
+    max-width: 240px;
+  }
+
+  .medium {
+    max-width: 280px;
+  }
+
+  .long {
+    max-width: 320px;
+  }
+
+  .checks {
+    padding: 4px 20px;
+  }
+
+  .checkItem {
+    padding: 14px 0;
+  }
+
+  /* The item name takes a fixed column; the choices, a block formatting context,
+     fill the space beside the float. */
+  .checkItemLegend {
+    display: flex;
+    align-items: center;
+    width: 200px;
+    min-height: var(--size-choice);
+    margin: 0;
+    padding-right: var(--space-md);
+  }
+
   .results {
-    max-width: 28rem;
+    clear: none;
+  }
+
+  .radio {
+    font-size: var(--font-size-base);
   }
 
   .actions {
     flex-direction: row;
+    margin-top: var(--space-md);
   }
 
-  .actions > button {
-    min-width: 10rem;
+  .actions > button[type='submit'] {
+    min-width: 200px;
+  }
+
+  .actions > button[data-variant='secondary'] {
+    min-width: 160px;
   }
 }

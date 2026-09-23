@@ -12,7 +12,7 @@ export function ReportListScreen() {
 
   return (
     <section aria-labelledby="list-title">
-      <h2 id="list-title">{t('list.title')}</h2>
+      <h2 id="list-title" className={styles.title}>{t('list.title')}</h2>
 
       {savedId ? (
         // <output> is announced like a status message without stealing focus from the
@@ -20,9 +20,11 @@ export function ReportListScreen() {
         <output className={styles.flash}>{t('list.saved', { id: savedId })}</output>
       ) : null}
 
-      {loading ? <p>{t('list.loading')}</p> : null}
+      {loading ? <p className={styles.state}>{t('list.loading')}</p> : null}
 
-      {!loading && reports.length === 0 ? <p>{t('list.empty')}</p> : null}
+      {!loading && reports.length === 0 ? (
+        <p className={styles.state}>{t('list.empty')}</p>
+      ) : null}
 
       {!loading && reports.length > 0 ? (
         <>

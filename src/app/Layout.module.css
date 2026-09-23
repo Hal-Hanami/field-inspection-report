@@ -1,102 +1,124 @@
 .shell {
+  --gutter: var(--space-md);
+
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+/* Off-screen until focused; the first Tab stop on every page. */
 .skip {
   position: absolute;
   left: -9999px;
 }
 
 .skip:focus {
-  position: static;
-  display: inline-block;
-  padding: var(--space-sm);
-  background-color: var(--color-surface);
-}
-
-.header {
-  background-color: var(--color-accent);
-  color: var(--color-accent-contrast);
-  padding: var(--space-md);
-}
-
-.title {
-  font-size: 1.125rem;
-  margin: 0;
-}
-
-.nav {
-  display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
-}
-
-.navLink {
-  display: flex;
+  left: var(--space-sm);
+  top: var(--space-sm);
+  z-index: 1;
+  display: inline-flex;
   align-items: center;
   min-height: var(--control-min-height);
   padding: 0 var(--space-md);
-  border-radius: var(--radius);
+  background-color: var(--color-focus);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+/* The title band is dark and the navigation below it is white, so the current screen
+   (marked on the white bar) is the strongest thing at the top of the page. */
+.header {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  margin: 0;
+  padding: 0 var(--gutter);
+  background-color: var(--color-header-bg);
   color: var(--color-accent-contrast);
+  font-size: var(--font-size-md);
+  letter-spacing: 0.04em;
+}
+
+.nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Current page: colour, weight and a 4px rule together, so colour is never the only cue. */
+.navLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-min-height);
+  height: var(--size-control);
+  padding: 4px var(--space-sm) 0;
+  border-bottom: 4px solid transparent;
+  color: var(--color-text);
   text-decoration: none;
-  background-color: rgb(255 255 255 / 12%);
+}
+
+.navLink:hover {
+  color: var(--color-accent);
 }
 
 .navLink[aria-current='page'] {
-  background-color: var(--color-surface);
   color: var(--color-accent);
   font-weight: 700;
+  border-bottom-color: var(--color-accent);
 }
 
 .main {
   flex: 1;
   width: 100%;
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: var(--space-md);
+  padding: var(--space-lg) var(--gutter) var(--space-xl);
 }
 
 .footer {
   width: 100%;
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: var(--space-md);
-  color: var(--color-muted);
+  padding: var(--space-lg) var(--gutter) 32px;
+  border-top: 1px solid var(--color-border);
 }
 
 .noticeTitle {
-  font-size: 0.875rem;
-  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
 }
 
 .noticeBody {
-  font-size: 0.8125rem;
+  max-width: 44em;
   margin: 0;
-  border-left: 3px solid var(--color-border);
-  padding-left: var(--space-sm);
+  font-size: var(--font-size-sm);
+  line-height: 1.8;
+  color: var(--color-muted);
 }
 
 @media (min-width: 768px) {
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-lg);
-    padding: var(--space-md) var(--space-xl);
+  /* Content is capped at the token width and centred; the gutter grows to fill. */
+  .shell {
+    --gutter: max(var(--space-xl), calc((100% - var(--content-max-width)) / 2));
   }
 
   .title {
-    font-size: 1.25rem;
+    min-height: 64px;
+    font-size: 20px;
   }
 
   .nav {
-    margin-top: 0;
+    display: flex;
+    padding: 0 var(--gutter);
   }
 
-  .main,
-  .footer {
-    padding: var(--space-lg) var(--space-xl);
+  .navLink {
+    min-width: 168px;
+    padding: 4px var(--space-lg) 0;
+  }
+
+  .main {
+    padding: 32px var(--gutter) 56px;
   }
 }

@@ -1,17 +1,26 @@
+/*
+ * Three steps of visual weight, not three colours of equal weight: "ok" is the quietest,
+ * "caution" gains an outline, "abnormal" is a solid fill, so a scan of the list stops
+ * on the abnormal rows first.
+ */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: 0 var(--space-sm);
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid transparent;
   border-radius: var(--radius);
+  font-size: var(--font-size-sm);
   font-weight: 700;
-  font-size: 0.875rem;
+  line-height: 1;
   white-space: nowrap;
 }
 
 /* The glyph is redundant with the label, so it stays out of the accessibility tree. */
 .badge::before {
-  font-size: 0.75rem;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .badge[data-severity='ok'] {
@@ -26,6 +35,7 @@
 .badge[data-severity='caution'] {
   color: var(--color-caution-fg);
   background-color: var(--color-caution-bg);
+  border-color: var(--color-caution-fg);
 }
 
 .badge[data-severity='caution']::before {
@@ -33,8 +43,9 @@
 }
 
 .badge[data-severity='abnormal'] {
-  color: var(--color-abnormal-fg);
-  background-color: var(--color-abnormal-bg);
+  color: var(--color-accent-contrast);
+  background-color: var(--color-abnormal-fg);
+  border-color: var(--color-abnormal-fg);
 }
 
 .badge[data-severity='abnormal']::before {
