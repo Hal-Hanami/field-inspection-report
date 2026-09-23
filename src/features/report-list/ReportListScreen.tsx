@@ -6,7 +6,7 @@ import styles from './ReportListScreen.module.css';
 
 /** What the office sees (DESIGN §4.2): newest first, with the report just filed on top. */
 export function ReportListScreen() {
-  const { reports, loading } = useReports();
+  const { reports, loading, failed } = useReports();
   const location = useLocation();
   const savedId = (location.state as { savedId?: string } | null)?.savedId;
 
@@ -22,7 +22,13 @@ export function ReportListScreen() {
 
       {loading ? <p className={styles.state}>{t('list.loading')}</p> : null}
 
-      {!loading && reports.length === 0 ? (
+      {failed ? (
+        <p role="alert" className={styles.state}>
+          {t('list.loadFailed')}
+        </p>
+      ) : null}
+
+      {!loading && !failed && reports.length === 0 ? (
         <p className={styles.state}>{t('list.empty')}</p>
       ) : null}
 

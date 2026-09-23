@@ -18,8 +18,8 @@ function spaFallback(): Plugin {
 }
 
 export default defineConfig(({ mode }) => ({
-  // `vite --mode server` (npm run dev:server) builds against the local API of DESIGN §7;
-  // any other mode uses the in-memory adapter (DESIGN §3.4).
+  // `vite --mode server` (npm run dev) runs against the local API of DESIGN §7; any other
+  // mode, the static demo build included, uses the in-memory adapter (DESIGN §3.4).
   define:
     mode === 'server' ? { 'import.meta.env.VITE_API_BASE_URL': JSON.stringify('/api') } : {},
   // The site is served from a subdirectory, so assets are referenced relative to it.

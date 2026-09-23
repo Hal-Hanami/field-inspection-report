@@ -24,25 +24,20 @@ is [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Run it
 
-The web alone, on the in-memory adapter:
+Needs Node.js, Docker and [uv](https://docs.astral.sh/uv/). From the repository root:
 
 ```sh
 npm install
-npm run dev        # http://localhost:5173/field-inspection-report/
+npm run db          # PostgreSQL on localhost:55432
+npm run api:setup   # Python environment, schema, demo data (once)
+npm run api         # the API on :8000 — leave it running
+npm run dev         # in a second terminal: http://localhost:5173/field-inspection-report/
 ```
 
-The web with the server (needs Docker and [uv](https://docs.astral.sh/uv/)):
-
-```sh
-docker compose up -d --wait db                      # PostgreSQL on localhost:55432
-cd api
-uv sync
-uv run alembic upgrade head                         # build the schema
-uv run python -m app.seed ../src/locales/seed.ja.json
-uv run uvicorn app.asgi:app --port 8000             # the API under /api
-# in another terminal, at the repository root:
-npm run dev:server                                  # proxies /api to the server
-```
+`npm run dev` always talks to the API, so what is filed is in PostgreSQL and survives a
+reload. If the API is not running, the screens say they cannot load rather than falling
+back to anything. `npm run dev:demo` runs the web alone on the in-memory adapter, the way
+the public demo does: nothing filed there survives a reload.
 
 ## Tests
 

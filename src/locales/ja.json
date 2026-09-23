@@ -8,6 +8,7 @@
   "list.caption": "点検報告の一覧（点検日時の新しい順）",
   "list.loading": "読み込んでいます…",
   "list.empty": "報告がまだありません。",
+  "list.loadFailed": "報告を読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。",
   "list.count": "{count} 件",
   "list.saved": "報告 {id} を登録しました。",
   "list.column.id": "報告ID",

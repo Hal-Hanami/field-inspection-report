@@ -10,7 +10,7 @@ npm run build      # type check and bundle
 cd api
 uv run ruff format --check . && uv run ruff check .
 uv run pyright     # strict
-uv run pytest      # against PostgreSQL: docker compose up -d --wait db
+uv run pytest      # against PostgreSQL: npm run db
 ```
 
 All of them pass, or the change is not finished.

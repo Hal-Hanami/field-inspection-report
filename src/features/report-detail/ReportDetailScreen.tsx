@@ -21,10 +21,17 @@ export function ReportDetailScreen() {
         {t('detail.title', { id })}
       </h2>
       {state.loading ? <p className={styles.state}>{t('list.loading')}</p> : null}
-      {!state.loading && state.report === null ? (
+      {state.failed ? (
+        <p role="alert" className={styles.state}>
+          {t('list.loadFailed')}
+        </p>
+      ) : null}
+      {!state.loading && !state.failed && state.report === null ? (
         <p className={styles.state}>{t('detail.notFound', { id })}</p>
       ) : null}
-      {!state.loading && state.report ? <ReportDetail report={state.report} /> : null}
+      {!state.loading && !state.failed && state.report ? (
+        <ReportDetail report={state.report} />
+      ) : null}
     </section>
   );
 }

@@ -148,7 +148,10 @@ src/
   `src/locales/seed.ja.json`, assigns `id` and `submittedAt` on save, and backs the static
   demo and the component tests. The HTTP one talks to the server (§7). `src/main.tsx` picks
   one: HTTP when `VITE_API_BASE_URL` is set, memory otherwise. The screens cannot tell which
-  one they have.
+  one they have, so the person running them cannot either: `npm run dev` therefore runs
+  against the server, and the in-memory adapter is reached only on purpose (`npm run
+  dev:demo`, the static demo build, the tests). A local session that looks like the real
+  system and forgets everything on reload is a trap, not a convenience.
 - **§3.5** State that belongs to a screen lives in that screen's hook (`useReports`,
   `useReportForm`); components receive values and callbacks as props and render. There is no
   global state container, because the only shared object is the repository (§3.3).
@@ -176,6 +179,10 @@ src/
   severity, which says *that* something is abnormal; only the detail says *which* item, and
   the office should not have to infer it from the remarks. An unknown id says so on the
   page rather than redirecting, so a mistyped link is noticed.
+
+- **§4.7** When the repository cannot answer — the server is down or unreachable — the
+  screen says so in an alert. A loading message that never ends reads as "wait", and the
+  person waits; an error reads as "something is wrong", which is true.
 
 ## §5 Accessibility
 
